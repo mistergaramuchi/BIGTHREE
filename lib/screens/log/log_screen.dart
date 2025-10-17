@@ -199,9 +199,11 @@ class _LogScreenState extends ConsumerState<LogScreen> {
       },
     );
 
-    weightController.dispose();
-    repsController.dispose();
-    rirController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      weightController.dispose();
+      repsController.dispose();
+      rirController.dispose();
+    });
 
     if (result != null) {
       notifier.addMainLiftSet(result);

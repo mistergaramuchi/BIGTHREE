@@ -37,10 +37,15 @@ void main() {
     expect(find.text('Training Sessions'), findsOneWidget);
     expect(find.text('Dead Session'), findsOneWidget);
 
+    await tester.tap(find.text('Dead Session'));
+    await tester.pumpAndSettle();
+
     final startSessionButton = find
         .widgetWithText(FilledButton, 'Start Session')
         .first;
-    await tester.tap(startSessionButton);
+    await tester.ensureVisible(startSessionButton);
+    final startSessionWidget = tester.widget<FilledButton>(startSessionButton);
+    startSessionWidget.onPressed?.call();
     await tester.pumpAndSettle();
 
     expect(find.text('Support Exercises'), findsOneWidget);
@@ -52,5 +57,35 @@ void main() {
     await tester.tap(find.text('View History'));
     await tester.pumpAndSettle();
     expect(find.text('Training History'), findsOneWidget);
+  });
+
+  testWidgets('creates a new session template via dialog', (
+    WidgetTester tester,
+  ) async {
+    _logWidgetTest('Create new session template from Sessions screen');
+    await tester.pumpWidget(const ProviderScope(child: LiftingApp()));
+
+    await tester.tap(find.text('Jump into Logging'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create New Session'), findsOneWidget);
+
+    await tester.tap(find.text('Create New Session'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Custom Builder Session',
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Custom Builder Session'), findsOneWidget);
+
+    await tester.tap(find.text('Custom Builder Session'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No support exercises yet.'), findsWidgets);
   });
 }

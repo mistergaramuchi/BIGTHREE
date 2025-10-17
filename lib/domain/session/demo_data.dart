@@ -125,6 +125,20 @@ const Exercise lateralRaise = Exercise(
   tags: ['shoulders', 'isolation'],
 );
 
+const List<Exercise> demoSupportExercises = [
+  barbellRow,
+  romanianDeadlift,
+  pullUp,
+  dumbbellBench,
+  inclineBench,
+  legPress,
+  walkingLunge,
+  hipThrust,
+  backExtension,
+  tricepPushdown,
+  lateralRaise,
+];
+
 const demoSessionTemplates = [
   SessionTemplate(
     id: 'session_deadlift',

@@ -7,6 +7,10 @@ _Last updated: 2025-10-17_
 - 2025-10-17 14:45Z — Initialized Codex action log and reviewed existing battleplan to sync context.
 - 2025-10-17 14:45Z — Checked repository/global Git user identity; no name/email configured.
 - 2025-10-17 14:48Z — Staged all project files and created `Initial commit` on `main` for the new repository baseline.
+- 2025-10-17 14:54Z — Refined Sessions screen with expandable templates and inline “Create New Session” entry.
+- 2025-10-17 14:55Z — Updated widget navigation test for the new expandable layout and re-ran `flutter test`.
+- 2025-10-17 15:12Z — Upgraded session creation dialog (supports optional exercise selection), added empty-state messaging, and embedded the creator card beneath the list.
+- 2025-10-17 15:12Z — Expanded widget coverage for the session creation flow and resolved controller disposal timing to keep tests stable.
 
 ---
 
@@ -47,6 +51,14 @@ Store → `/users/{uid}/profile`
 If info is missing, coaches may ask **one** clarifying question; never invent.
 
 ### 2️⃣ Logging
+- Choose your Session - (S / B / D / Other)
+- When Session is picked from list, go into "Session Overview"
+- In "Session Overview" you see list of exercises. Unnecessary to have "main exercise" be any different from the "support exercises" just make it a list of exercises. Have a floating button at bottom saying "START SESSION".
+- Bottom of this list is "+ Add an exercise". When pressed you get the list of exercises available.
+- TODO: MAKE EXTENSIVE LIST OF EXERCISES. FOR NOW: make a database of 4 exercises (pick some) that i can choose from to "add" to my session.
+- When session is "STARTED" then you get the workout buttons. weights. reps. 
+
+
 - Choose **Main Lift** (S / B / D)
 - Add sets: kg, reps, RIR (optional)
 - Add support exercises from 100+ catalog

@@ -18,19 +18,30 @@ class SessionsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Training Sessions')),
-      body: ListView.separated(
+      body: Padding(
         padding: const EdgeInsets.all(24),
-        itemBuilder: (context, index) {
-          final template = sessions[index];
-          return _SessionCard(template: template);
-        },
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
-        itemCount: sessions.length,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateSessionDialog(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Session'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ListView.separated(
+                itemBuilder: (context, index) {
+                  if (sessions.isEmpty) {
+                    return const _EmptySessionsPlaceholder();
+                  }
+                  final template = sessions[index];
+                  return _SessionTile(template: template);
+                },
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                itemCount: sessions.isEmpty ? 1 : sessions.length,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CreateSessionTile(
+              onCreate: () => _showCreateSessionDialog(context, ref),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -42,6 +53,8 @@ class SessionsScreen extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     String selectedMainLiftId = demoMainLifts.first.id;
+    final supportOptions = demoSupportExercises;
+    final selectedSupportIds = <String>{};
 
     final template = await showDialog<SessionTemplate>(
       context: context,
@@ -89,13 +102,47 @@ class SessionsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Support exercise selection coming soon.',
-                          style: TextStyle(fontSize: 12),
+                          'Support exercises (optional)',
+                          style: Theme.of(context).textTheme.titleSmall,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      if (supportOptions.isEmpty)
+                        const Text('Support catalog coming soon.'),
+                      if (supportOptions.isNotEmpty)
+                        ...supportOptions.map(
+                          (exercise) => CheckboxListTile(
+                            value: selectedSupportIds.contains(exercise.id),
+                            onChanged: (checked) {
+                              setState(() {
+                                if (checked ?? false) {
+                                  selectedSupportIds.add(exercise.id);
+                                } else {
+                                  selectedSupportIds.remove(exercise.id);
+                                }
+                              });
+                            },
+                            title: Text(exercise.name),
+                            subtitle: Text(exercise.category),
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                        ),
+                      if (supportOptions.isNotEmpty)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              selectedSupportIds.isEmpty
+                                  ? 'No support work selected.'
+                                  : '${selectedSupportIds.length} support exercise(s) selected.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -112,11 +159,18 @@ class SessionsScreen extends ConsumerWidget {
                     final mainLift = demoMainLifts.firstWhere(
                       (exercise) => exercise.id == selectedMainLiftId,
                     );
+                    final supports = supportOptions
+                        .where(
+                          (exercise) =>
+                              selectedSupportIds.contains(exercise.id),
+                        )
+                        .toList();
                     Navigator.of(context).pop(
                       SessionTemplate(
                         id: 'session_${DateTime.now().millisecondsSinceEpoch}',
                         name: name,
                         mainExercise: mainLift,
+                        supportExercises: supports,
                       ),
                     );
                   },
@@ -129,7 +183,9 @@ class SessionsScreen extends ConsumerWidget {
       },
     );
 
-    nameController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      nameController.dispose();
+    });
 
     if (template != null) {
       ref.read(sessionTemplatesProvider.notifier).addSession(template);
@@ -137,55 +193,99 @@ class SessionsScreen extends ConsumerWidget {
   }
 }
 
-class _SessionCard extends ConsumerWidget {
-  const _SessionCard({required this.template});
+class _EmptySessionsPlaceholder extends StatelessWidget {
+  const _EmptySessionsPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.event_available,
+              size: 40,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No training sessions yet.',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Create your first session to start logging your lifter’s work.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionTile extends StatelessWidget {
+  const _SessionTile({required this.template});
 
   final SessionTemplate template;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final subtitleParts = [
+      'Main Lift: ${template.mainExercise.name}',
+      if (template.supportExercises.isNotEmpty)
+        '${template.supportExercises.length} support exercise${template.supportExercises.length == 1 ? '' : 's'}',
+    ];
+
     return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  template.name,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                FilledButton(
-                  onPressed: () => _startSession(context),
-                  child: const Text('Start Session'),
-                ),
-              ],
+      child: ExpansionTile(
+        title: Text(
+          template.name,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        subtitle: Text(subtitleParts.join(' · ')),
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          const SizedBox(height: 12),
+          _ExerciseListTile(
+            label: 'Main Lift',
+            exercise: template.mainExercise,
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Support Work',
+              style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 16),
-            _ExerciseListTile(
-              label: 'Main Lift',
-              exercise: template.mainExercise,
-            ),
-            const SizedBox(height: 12),
-            Text('Support Work', style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            if (template.supportExercises.isEmpty)
-              const Text('No support exercises yet.'),
-            if (template.supportExercises.isNotEmpty)
-              ...template.supportExercises.map(
-                (exercise) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: _ExerciseListTile(
-                    label: exercise.category,
-                    exercise: exercise,
-                  ),
+          ),
+          const SizedBox(height: 8),
+          if (template.supportExercises.isEmpty)
+            const Text('No support exercises yet.'),
+          if (template.supportExercises.isNotEmpty)
+            ...template.supportExercises.map(
+              (exercise) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: _ExerciseListTile(
+                  label: exercise.category,
+                  exercise: exercise,
                 ),
               ),
-          ],
-        ),
+            ),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: () => _startSession(context),
+              child: const Text('Start Session'),
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
       ),
     );
   }
@@ -210,6 +310,36 @@ class _ExerciseListTile extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(exercise.name),
       subtitle: Text(label),
+    );
+  }
+}
+
+class _CreateSessionTile extends StatelessWidget {
+  const _CreateSessionTile({required this.onCreate, super.key});
+
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Need something new?',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onCreate,
+              icon: const Icon(Icons.add),
+              label: const Text('Create New Session'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

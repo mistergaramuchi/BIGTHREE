@@ -12,6 +12,6 @@ class SessionTemplatesNotifier extends StateNotifier<List<SessionTemplate>> {
   SessionTemplatesNotifier() : super(demoSessionTemplates);
 
   void addSession(SessionTemplate template) {
-    state = [...state, template];
+    state = [template, ...state];
   }
 }
