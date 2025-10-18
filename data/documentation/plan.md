@@ -15,7 +15,7 @@ _Last updated: 2025-10-17_
 - 2025-10-17 15:28Z — Extended widget suite to verify the start-session journey and passing `flutter test` on the unified log UI.
 - 2025-10-17 15:48Z — Refined logging UI with expandable exercise tiles, inline kg editing, reps counters, and exercise-level default rep tracking.
 - 2025-10-17 17:24Z — Entailed default 3-set layout per exercise (no manual add/clear), swapped exercises via inline icons, and ensured phone-friendly weight/reps editors with updated tests.
-- 2025-10-18 07:34Z — Introduced responsive layout constants, centered max-width content, and made inline controls adapt to breakpoints across sessions, overview, and log screens.
+- 2025-10-18 07:34Z — Introduced responsive layout constants, centered max-width content, and made inline controls adapt to breakpoints across sessions, overview, and log screens. !
 
 ---
 
