@@ -25,30 +25,30 @@ void main() {
     expect(find.text('Jump into Logging'), findsOneWidget);
   });
 
-  testWidgets('navigates through log, summary, and history screens', (
+  testWidgets('navigates from overview into log, summary, and history', (
     WidgetTester tester,
   ) async {
-    _logWidgetTest('Navigate sessions → log → summary → history flow');
+    _logWidgetTest('Navigate sessions → overview → log → summary → history');
     await tester.pumpWidget(const ProviderScope(child: LiftingApp()));
 
     await tester.tap(find.text('Jump into Logging'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Training Sessions'), findsOneWidget);
-    expect(find.text('Dead Session'), findsOneWidget);
+    expect(find.text('Choose Your Session'), findsOneWidget);
+    expect(find.text('Deadlift Session'), findsOneWidget);
 
-    await tester.tap(find.text('Dead Session'));
+    await tester.tap(find.text('Deadlift Session'));
     await tester.pumpAndSettle();
 
-    final startSessionButton = find
-        .widgetWithText(FilledButton, 'Start Session')
-        .first;
-    await tester.ensureVisible(startSessionButton);
-    final startSessionWidget = tester.widget<FilledButton>(startSessionButton);
-    startSessionWidget.onPressed?.call();
-    await tester.pumpAndSettle();
+    expect(find.textContaining('Overview'), findsOneWidget);
+    expect(find.text('Deadlift (Conventional)'), findsOneWidget);
 
-    expect(find.text('Support Exercises'), findsOneWidget);
+    final startSessionButton = find.widgetWithText(
+      FloatingActionButton,
+      'START SESSION',
+    );
+    await tester.tap(startSessionButton);
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Review Summary'));
     await tester.pumpAndSettle();
@@ -59,33 +59,24 @@ void main() {
     expect(find.text('Training History'), findsOneWidget);
   });
 
-  testWidgets('creates a new session template via dialog', (
+  testWidgets('adds an exercise to the session overview', (
     WidgetTester tester,
   ) async {
-    _logWidgetTest('Create new session template from Sessions screen');
+    _logWidgetTest('Add exercise from quick catalog');
     await tester.pumpWidget(const ProviderScope(child: LiftingApp()));
 
     await tester.tap(find.text('Jump into Logging'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create New Session'), findsOneWidget);
-
-    await tester.tap(find.text('Create New Session'));
+    await tester.tap(find.text('Other Session'));
     await tester.pumpAndSettle();
 
-    await tester.enterText(
-      find.byType(TextFormField).first,
-      'Custom Builder Session',
-    );
-
-    await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+    await tester.tap(find.text('+ Add an exercise'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Custom Builder Session'), findsOneWidget);
-
-    await tester.tap(find.text('Custom Builder Session'));
+    await tester.tap(find.text('Romanian Deadlift'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No support exercises yet.'), findsWidgets);
+    expect(find.text('Romanian Deadlift'), findsOneWidget);
   });
 }

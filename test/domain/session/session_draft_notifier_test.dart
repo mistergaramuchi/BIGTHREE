@@ -47,26 +47,34 @@ void main() {
 
       expect(notifier.state.mainLift?.id, template.mainExercise.id);
       expect(notifier.state.supports.length, template.supportExercises.length);
-      expect(notifier.state.mainLiftSets, isEmpty);
+      expect(notifier.state.mainLiftSets.length, 3);
+      expect(
+        notifier.state.mainLiftSets,
+        everyElement(predicate<LiftSet>((set) => set.reps > 0)),
+      );
     });
 
     test('selecting a new main lift clears existing main lift sets', () {
       _logTest('SessionDraftNotifier > selecting a new main lift clears sets');
       notifier.setMainLift(squat);
-      notifier.addMainLiftSet(const LiftSet(weightKg: 150, reps: 5, rir: 1));
-      expect(notifier.state.mainLiftSets.length, 1);
+      notifier.updateMainLiftSet(
+        0,
+        const LiftSet(weightKg: 150, reps: 5, rir: 1),
+      );
+      expect(notifier.state.mainLiftSets.length, 3);
 
       notifier.setMainLift(bench);
       expect(notifier.state.mainLift?.id, bench.id);
-      expect(notifier.state.mainLiftSets, isEmpty);
+      expect(notifier.state.mainLiftSets.length, 3);
     });
 
     test('computes e1RM and volume for main lift sets', () {
       _logTest('SessionDraftNotifier > computes e1RM and volume aggregates');
       notifier.setMainLift(squat);
       notifier
-        ..addMainLiftSet(const LiftSet(weightKg: 150, reps: 5))
-        ..addMainLiftSet(const LiftSet(weightKg: 160, reps: 3));
+        ..updateMainLiftSet(0, const LiftSet(weightKg: 150, reps: 5))
+        ..updateMainLiftSet(1, const LiftSet(weightKg: 160, reps: 3))
+        ..updateMainLiftSet(2, const LiftSet(weightKg: 0, reps: 1));
 
       expect(notifier.state.mainLiftVolumeKg, 1230);
       expect(notifier.state.estimated1RmKg, closeTo(176.0, 0.01));
@@ -75,11 +83,24 @@ void main() {
     test('manages support exercise sets and drops empty entries', () {
       _logTest('SessionDraftNotifier > manages support sets and pruning');
       notifier.setMainLift(squat);
-      notifier.addMainLiftSet(const LiftSet(weightKg: 150, reps: 5));
+      notifier.updateMainLiftSet(0, const LiftSet(weightKg: 150, reps: 5));
       notifier.upsertSupportExercise(row);
-      notifier.addSupportSet(row.id, const LiftSet(weightKg: 80, reps: 10));
+      notifier.updateSupportSet(
+        row.id,
+        0,
+        const LiftSet(weightKg: 80, reps: 10),
+      );
 
-      expect(notifier.state.supports.single.sets.length, 1);
+      SupportExerciseEntry? support;
+      try {
+        support = notifier.state.supports.firstWhere(
+          (entry) => entry.exercise.id == row.id,
+        );
+      } catch (_) {
+        support = null;
+      }
+      expect(support, isNotNull);
+      expect(support!.sets.first.weightKg, 80);
       expect(notifier.state.supportVolumeKg, 800);
 
       notifier.updateSupportSet(
@@ -89,9 +110,7 @@ void main() {
       );
       expect(notifier.state.supportVolumeKg, 850);
 
-      notifier.removeSupportSet(row.id, 0);
-      expect(notifier.state.supports, isEmpty);
-      expect(notifier.state.totalVolumeKg, 750);
+      expect(notifier.state.totalVolumeKg, 1600);
     });
 
     test('removing support exercise without sets is a no-op', () {
@@ -99,6 +118,17 @@ void main() {
       notifier.upsertSupportExercise(row);
       notifier.removeSupportExercise(row.id);
       expect(notifier.state.supports, isEmpty);
+    });
+
+    test('updates user default reps when requested', () {
+      _logTest('SessionDraftNotifier > updates user default reps');
+      notifier.setMainLift(squat);
+      notifier.updateMainLiftDefaultReps(8);
+      expect(notifier.state.mainLift?.userDefaultReps, 8);
+
+      notifier.upsertSupportExercise(row);
+      notifier.updateSupportDefaultReps(row.id, 12);
+      expect(notifier.state.supports.first.exercise.userDefaultReps, 12);
     });
   });
 }

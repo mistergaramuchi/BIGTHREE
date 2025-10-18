@@ -8,6 +8,8 @@ const Exercise squatHighBar = Exercise(
   modality: 'Barbell',
   tags: ['squat', 'barbell', 'compound'],
   isMainLift: true,
+  defaultReps: 5,
+  userDefaultReps: 5,
 );
 
 const Exercise squatLowBar = Exercise(
@@ -17,6 +19,8 @@ const Exercise squatLowBar = Exercise(
   modality: 'Barbell',
   tags: ['squat', 'barbell', 'compound'],
   isMainLift: true,
+  defaultReps: 5,
+  userDefaultReps: 5,
 );
 
 const Exercise benchCompetition = Exercise(
@@ -26,6 +30,8 @@ const Exercise benchCompetition = Exercise(
   modality: 'Barbell',
   tags: ['bench', 'barbell', 'compound'],
   isMainLift: true,
+  defaultReps: 6,
+  userDefaultReps: 6,
 );
 
 const Exercise deadliftConventional = Exercise(
@@ -35,6 +41,8 @@ const Exercise deadliftConventional = Exercise(
   modality: 'Barbell',
   tags: ['deadlift', 'barbell', 'compound'],
   isMainLift: true,
+  defaultReps: 3,
+  userDefaultReps: 3,
 );
 
 const Exercise barbellRow = Exercise(
@@ -43,6 +51,8 @@ const Exercise barbellRow = Exercise(
   category: 'Back',
   modality: 'Barbell',
   tags: ['row', 'back'],
+  defaultReps: 8,
+  userDefaultReps: 8,
 );
 
 const Exercise romanianDeadlift = Exercise(
@@ -51,6 +61,8 @@ const Exercise romanianDeadlift = Exercise(
   category: 'Posterior Chain',
   modality: 'Barbell',
   tags: ['deadlift', 'hamstrings'],
+  defaultReps: 10,
+  userDefaultReps: 10,
 );
 
 const Exercise pullUp = Exercise(
@@ -59,6 +71,8 @@ const Exercise pullUp = Exercise(
   category: 'Back',
   modality: 'Bodyweight',
   tags: ['pull', 'bodyweight'],
+  defaultReps: 6,
+  userDefaultReps: 6,
 );
 
 const Exercise dumbbellBench = Exercise(
@@ -67,6 +81,8 @@ const Exercise dumbbellBench = Exercise(
   category: 'Bench',
   modality: 'Dumbbell',
   tags: ['bench', 'dumbbell'],
+  defaultReps: 12,
+  userDefaultReps: 12,
 );
 
 const Exercise inclineBench = Exercise(
@@ -125,6 +141,13 @@ const Exercise lateralRaise = Exercise(
   tags: ['shoulders', 'isolation'],
 );
 
+const List<Exercise> demoExerciseCatalog = [
+  barbellRow,
+  romanianDeadlift,
+  pullUp,
+  dumbbellBench,
+];
+
 const List<Exercise> demoSupportExercises = [
   barbellRow,
   romanianDeadlift,
@@ -162,6 +185,12 @@ const demoSessionTemplates = [
       tricepPushdown,
       lateralRaise,
     ],
+  ),
+  SessionTemplate(
+    id: 'session_other',
+    name: 'Accessory Session',
+    mainExercise: barbellRow,
+    supportExercises: [pullUp, dumbbellBench],
   ),
 ];
 

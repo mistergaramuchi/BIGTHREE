@@ -5,8 +5,8 @@ import 'session_template.dart';
 
 final sessionDraftProvider =
     StateNotifierProvider<SessionDraftNotifier, SessionDraft>(
-  (ref) => SessionDraftNotifier(),
-);
+      (ref) => SessionDraftNotifier(),
+    );
 
 class SessionDraftNotifier extends StateNotifier<SessionDraft> {
   SessionDraftNotifier() : super(SessionDraft.empty());
@@ -18,9 +18,9 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
   void loadFromTemplate(SessionTemplate template) {
     state = SessionDraft(
       mainLift: template.mainExercise,
-      mainLiftSets: const [],
+      mainLiftSets: _seedSetsFor(template.mainExercise),
       supports: template.supportExercises
-          .map((e) => SupportExerciseEntry(exercise: e))
+          .map((e) => SupportExerciseEntry(exercise: e, sets: _seedSetsFor(e)))
           .toList(),
     );
   }
@@ -29,21 +29,18 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
     final sameLift = state.mainLift?.id == exercise.id;
     state = state.copyWith(
       mainLift: exercise,
-      mainLiftSets: sameLift ? state.mainLiftSets : <LiftSet>[],
+      mainLiftSets: sameLift && state.mainLiftSets.isNotEmpty
+          ? state.mainLiftSets
+          : _seedSetsFor(exercise),
     );
   }
 
   void clearMainLift() {
-    state = state.copyWith(
-      mainLift: null,
-      mainLiftSets: <LiftSet>[],
-    );
+    state = state.copyWith(mainLift: null, mainLiftSets: <LiftSet>[]);
   }
 
   void addMainLiftSet(LiftSet set) {
-    state = state.copyWith(
-      mainLiftSets: [...state.mainLiftSets, set],
-    );
+    state = state.copyWith(mainLiftSets: [...state.mainLiftSets, set]);
   }
 
   void updateMainLiftSet(int index, LiftSet set) {
@@ -59,6 +56,12 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
     state = state.copyWith(mainLiftSets: updatedSets);
   }
 
+  void updateMainLiftDefaultReps(int reps) {
+    final lift = state.mainLift;
+    if (lift == null) return;
+    state = state.copyWith(mainLift: lift.copyWith(userDefaultReps: reps));
+  }
+
   void upsertSupportExercise(Exercise exercise) {
     final idx = _supportIndexFor(exercise.id);
     if (idx != -1) {
@@ -71,7 +74,7 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
     state = state.copyWith(
       supports: [
         ...state.supports,
-        SupportExerciseEntry(exercise: exercise),
+        SupportExerciseEntry(exercise: exercise, sets: _seedSetsFor(exercise)),
       ],
     );
   }
@@ -81,6 +84,28 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
     if (idx == -1) return;
     final updatedSupports = [...state.supports]..removeAt(idx);
     state = state.copyWith(supports: updatedSupports);
+  }
+
+  void updateSupportDefaultReps(String exerciseId, int reps) {
+    final idx = _supportIndexFor(exerciseId);
+    if (idx == -1) return;
+    final supports = [...state.supports];
+    final entry = supports[idx];
+    supports[idx] = entry.copyWith(
+      exercise: entry.exercise.copyWith(userDefaultReps: reps),
+    );
+    state = state.copyWith(supports: supports);
+  }
+
+  void replaceSupportExercise(String exerciseId, Exercise newExercise) {
+    final idx = _supportIndexFor(exerciseId);
+    if (idx == -1) return;
+    final supports = [...state.supports];
+    supports[idx] = SupportExerciseEntry(
+      exercise: newExercise,
+      sets: _seedSetsFor(newExercise),
+    );
+    state = state.copyWith(supports: supports);
   }
 
   void addSupportSet(String exerciseId, LiftSet set) {
@@ -124,8 +149,17 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
     state = state.copyWith(supports: supports);
   }
 
+  List<LiftSet> _seedSetsFor(Exercise exercise) {
+    return List.generate(3, (_) => _defaultSetFor(exercise));
+  }
+
+  LiftSet _defaultSetFor(Exercise exercise) {
+    return LiftSet(weightKg: 0, reps: exercise.userDefaultReps);
+  }
+
   int _supportIndexFor(String exerciseId) {
-    return state.supports
-        .indexWhere((entry) => entry.exercise.id == exerciseId);
+    return state.supports.indexWhere(
+      (entry) => entry.exercise.id == exerciseId,
+    );
   }
 }

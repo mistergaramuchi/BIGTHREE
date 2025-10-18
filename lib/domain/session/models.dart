@@ -11,6 +11,8 @@ class Exercise {
     this.modality = '',
     this.tags = const [],
     this.isMainLift = false,
+    this.defaultReps = 6,
+    this.userDefaultReps = 6,
   });
 
   final String id;
@@ -19,6 +21,8 @@ class Exercise {
   final String modality;
   final List<String> tags;
   final bool isMainLift;
+  final int defaultReps;
+  final int userDefaultReps;
 
   Exercise copyWith({
     String? id,
@@ -27,6 +31,8 @@ class Exercise {
     String? modality,
     List<String>? tags,
     bool? isMainLift,
+    int? defaultReps,
+    int? userDefaultReps,
   }) {
     return Exercise(
       id: id ?? this.id,
@@ -35,17 +41,15 @@ class Exercise {
       modality: modality ?? this.modality,
       tags: tags ?? this.tags,
       isMainLift: isMainLift ?? this.isMainLift,
+      defaultReps: defaultReps ?? this.defaultReps,
+      userDefaultReps: userDefaultReps ?? this.userDefaultReps,
     );
   }
 }
 
 /// A single set entry for either the main lift or a support exercise.
 class LiftSet {
-  const LiftSet({
-    required this.weightKg,
-    required this.reps,
-    this.rir,
-  });
+  const LiftSet({required this.weightKg, required this.reps, this.rir});
 
   final double weightKg;
   final int reps;
@@ -58,11 +62,7 @@ class LiftSet {
     return weightKg * (1 + reps / 30);
   }
 
-  LiftSet copyWith({
-    double? weightKg,
-    int? reps,
-    int? rir,
-  }) {
+  LiftSet copyWith({double? weightKg, int? reps, int? rir}) {
     return LiftSet(
       weightKg: weightKg ?? this.weightKg,
       reps: reps ?? this.reps,
@@ -73,21 +73,14 @@ class LiftSet {
 
 /// Collection of support exercise sets.
 class SupportExerciseEntry {
-  const SupportExerciseEntry({
-    required this.exercise,
-    this.sets = const [],
-  });
+  const SupportExerciseEntry({required this.exercise, this.sets = const []});
 
   final Exercise exercise;
   final List<LiftSet> sets;
 
-  double get volumeKg =>
-      sets.fold(0, (running, set) => running + set.volumeKg);
+  double get volumeKg => sets.fold(0, (running, set) => running + set.volumeKg);
 
-  SupportExerciseEntry copyWith({
-    Exercise? exercise,
-    List<LiftSet>? sets,
-  }) {
+  SupportExerciseEntry copyWith({Exercise? exercise, List<LiftSet>? sets}) {
     return SupportExerciseEntry(
       exercise: exercise ?? this.exercise,
       sets: sets ?? this.sets,

@@ -9,8 +9,12 @@ _Last updated: 2025-10-17_
 - 2025-10-17 14:48Z — Staged all project files and created `Initial commit` on `main` for the new repository baseline.
 - 2025-10-17 14:54Z — Refined Sessions screen with expandable templates and inline “Create New Session” entry.
 - 2025-10-17 14:55Z — Updated widget navigation test for the new expandable layout and re-ran `flutter test`.
-- 2025-10-17 15:12Z — Upgraded session creation dialog (supports optional exercise selection), added empty-state messaging, and embedded the creator card beneath the list.
-- 2025-10-17 15:12Z — Expanded widget coverage for the session creation flow and resolved controller disposal timing to keep tests stable.
+- 2025-10-17 15:12Z — Rebuilt Sessions flow with S/B/D/Other chooser and new overview screen (exercise list, add picker, start FAB).
+- 2025-10-17 15:12Z — Added quick exercise catalog, deferred dialog controller disposal, and refreshed widget tests to cover the overview flow.
+- 2025-10-17 15:28Z — Implemented new logging surface with per-exercise set capture (main + supports) triggered when starting a session.
+- 2025-10-17 15:28Z — Extended widget suite to verify the start-session journey and passing `flutter test` on the unified log UI.
+- 2025-10-17 15:48Z — Refined logging UI with expandable exercise tiles, inline kg editing, reps counters, and exercise-level default rep tracking.
+- 2025-10-17 17:24Z — Entailed default 3-set layout per exercise (no manual add/clear), swapped exercises via inline icons, and ensured phone-friendly weight/reps editors with updated tests.
 
 ---
 
