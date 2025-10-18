@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/session/demo_data.dart';
 import '../../domain/session/models.dart';
 import '../../domain/session/session_template.dart';
+import '../../ui/responsive/layout_constants.dart';
 import '../log/log_screen.dart';
 
 class SessionOverviewScreen extends StatefulWidget {
@@ -60,63 +61,73 @@ class _SessionOverviewScreenState extends State<SessionOverviewScreen> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Exercises', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Card(
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemBuilder: (context, index) {
-                    if (index == _selectedExercises.length) {
-                      return ListTile(
-                        leading: const Icon(Icons.add_circle_outline),
-                        title: const Text('+ Add an exercise'),
-                        onTap: _showAddExerciseSheet,
-                      );
-                    }
-                    final exercise = _selectedExercises[index];
-                    final isMain = index == 0;
-                    return ListTile(
-                      leading: CircleAvatar(child: Text('${index + 1}')),
-                      title: Text(exercise.name),
-                      subtitle: Text(
-                        exercise.category.isEmpty
-                            ? 'Exercise'
-                            : exercise.category,
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            tooltip: 'Change exercise',
-                            icon: const Icon(Icons.swap_horiz),
-                            onPressed: () => _changeExercise(index),
-                          ),
-                          if (!isMain)
-                            IconButton(
-                              tooltip: 'Remove exercise',
-                              icon: const Icon(Icons.delete_outline),
-                              onPressed: () => _removeExercise(exercise.id),
+        padding: LayoutConstants.responsivePadding(context),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gap = LayoutConstants.responsiveGap(context);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Exercises', style: theme.textTheme.titleLarge),
+                SizedBox(height: gap / 2),
+                Expanded(
+                  child: LayoutConstants.maxWidthConstrained(
+                    child: Card(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemBuilder: (context, index) {
+                          if (index == _selectedExercises.length) {
+                            return ListTile(
+                              leading: const Icon(Icons.add_circle_outline),
+                              title: const Text('+ Add an exercise'),
+                              onTap: _showAddExerciseSheet,
+                            );
+                          }
+                          final exercise = _selectedExercises[index];
+                          final isMain = index == 0;
+                          return ListTile(
+                            leading: CircleAvatar(child: Text('${index + 1}')),
+                            title: Text(exercise.name),
+                            subtitle: Text(
+                              exercise.category.isEmpty
+                                  ? 'Exercise'
+                                  : exercise.category,
                             ),
-                        ],
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Change exercise',
+                                  icon: const Icon(Icons.swap_horiz),
+                                  onPressed: () => _changeExercise(index),
+                                ),
+                                if (!isMain)
+                                  IconButton(
+                                    tooltip: 'Remove exercise',
+                                    icon: const Icon(Icons.delete_outline),
+                                    onPressed: () =>
+                                        _removeExercise(exercise.id),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemCount: _selectedExercises.length + 1,
                       ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemCount: _selectedExercises.length + 1,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tap “+ Add an exercise” to pull options from the quick catalog.',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+                SizedBox(height: gap / 2),
+                LayoutConstants.maxWidthConstrained(
+                  child: Text(
+                    'Tap “+ Add an exercise” to pull options from the quick catalog.',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(

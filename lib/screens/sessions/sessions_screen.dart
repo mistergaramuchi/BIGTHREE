@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/session/session_template.dart';
 import '../../domain/session/session_templates_provider.dart';
+import '../../ui/responsive/layout_constants.dart';
 import 'session_overview_screen.dart';
 
 class SessionsScreen extends ConsumerWidget {
@@ -27,14 +28,26 @@ class SessionsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Choose Your Session')),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(24),
-        itemBuilder: (context, index) {
-          final (descriptor, template) = orderedChoices[index];
-          return _SessionChoiceCard(descriptor: descriptor, template: template);
-        },
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
-        itemCount: orderedChoices.length,
+      body: Padding(
+        padding: LayoutConstants.responsivePadding(context),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final gap = LayoutConstants.responsiveGap(context);
+            return LayoutConstants.maxWidthConstrained(
+              child: ListView.separated(
+                itemBuilder: (context, index) {
+                  final (descriptor, template) = orderedChoices[index];
+                  return _SessionChoiceCard(
+                    descriptor: descriptor,
+                    template: template,
+                  );
+                },
+                separatorBuilder: (_, __) => SizedBox(height: gap),
+                itemCount: orderedChoices.length,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
