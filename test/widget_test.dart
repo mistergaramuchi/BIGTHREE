@@ -34,14 +34,16 @@ void main() {
     await tester.tap(find.text('Jump into Logging'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Choose Your Session'), findsOneWidget);
-    expect(find.text('Deadlift Session'), findsOneWidget);
-
-    await tester.tap(find.text('Deadlift Session'));
+    expect(find.text('Your Programs'), findsOneWidget);
+    await tester.tap(find.text('StrongLifts 5×5'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Overview'), findsOneWidget);
-    expect(find.text('Deadlift (Conventional)'), findsOneWidget);
+    expect(find.text('StrongLifts 5×5'), findsOneWidget);
+    await tester.tap(find.text('Workout A'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Workout A'), findsWidgets);
+    expect(find.text('Back Squat (Low-Bar)'), findsOneWidget);
 
     final startSessionButton = find.widgetWithText(
       FloatingActionButton,
@@ -68,13 +70,22 @@ void main() {
     await tester.tap(find.text('Jump into Logging'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Other Session'));
+    await tester.tap(find.text('Quick Sessions'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Create Session'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('+ Add an exercise'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Romanian Deadlift'));
+    final target = find.text('Romanian Deadlift');
+    await tester.scrollUntilVisible(
+      target,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(target, warnIfMissed: false);
     await tester.pumpAndSettle();
 
     expect(find.text('Romanian Deadlift'), findsOneWidget);

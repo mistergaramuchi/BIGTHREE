@@ -1,0 +1,1677 @@
+[
+  {
+    "id": "squat_back_high_bar",
+    "name": "Back Squat (High-Bar)",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": true,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_back_low_bar",
+    "name": "Back Squat (Low-Bar)",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": true,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_front",
+    "name": "Front Squat",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "bench_press_comp",
+    "name": "Bench Press (Competition)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": true,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "deadlift_conventional",
+    "name": "Deadlift (Conventional)",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": true,
+    "defaultReps": 3,
+    "userDefaultReps": 3
+  },
+  {
+    "id": "deadlift_sumo",
+    "name": "Deadlift (Sumo)",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": true,
+    "defaultReps": 3,
+    "userDefaultReps": 3
+  },
+  {
+    "id": "overhead_press_standing",
+    "name": "Overhead Press (Standing)",
+    "category": "Press",
+    "modality": "Barbell",
+    "tags": [
+      "press",
+      "barbell",
+      "compound"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_safety_bar",
+    "name": "Safety Bar Squat",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_box",
+    "name": "Box Squat",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_pause",
+    "name": "Pause Squat",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_tempo",
+    "name": "Tempo Squat",
+    "category": "Squat",
+    "modality": "Barbell",
+    "tags": [
+      "squat",
+      "barbell",
+      "tempo"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "squat_goblet",
+    "name": "Goblet Squat",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "squat",
+      "dumbbell"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "split_squat",
+    "name": "Split Squat",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "split",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "bulgarian_split_squat",
+    "name": "Bulgarian Split Squat",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "split",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "forward_lunge",
+    "name": "Forward Lunge",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "lunge",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "reverse_lunge",
+    "name": "Reverse Lunge",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "lunge",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "walking_lunge",
+    "name": "Walking Lunge",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "lunge",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "step_up",
+    "name": "Step-Up",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "step_up",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "leg_press",
+    "name": "Leg Press",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "legs",
+      "machine"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "hack_squat",
+    "name": "Hack Squat",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "legs",
+      "machine"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "front_foot_elevated_split",
+    "name": "Front-Foot-Elevated Split Squat",
+    "category": "Squat",
+    "modality": "Dumbbell",
+    "tags": [
+      "split",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "wall_sit",
+    "name": "Wall Sit",
+    "category": "Squat",
+    "modality": "Bodyweight",
+    "tags": [
+      "legs",
+      "endurance"
+    ],
+    "isMainLift": false,
+    "defaultReps": 30,
+    "userDefaultReps": 30
+  },
+  {
+    "id": "leg_extension",
+    "name": "Leg Extension",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "quadriceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "leg_curl_seated",
+    "name": "Seated Leg Curl",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "hamstrings",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "leg_curl_lying",
+    "name": "Lying Leg Curl",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "hamstrings",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "leg_curl_standing",
+    "name": "Standing Leg Curl",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "hamstrings",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "calf_raise_standing",
+    "name": "Standing Calf Raise",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "calves",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "calf_raise_seated",
+    "name": "Seated Calf Raise",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "calves",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "glute_ham_raise",
+    "name": "Glute-Ham Raise",
+    "category": "Posterior Chain",
+    "modality": "Bodyweight",
+    "tags": [
+      "hamstrings",
+      "posterior_chain"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "adductor_machine",
+    "name": "Adductor Machine",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "adductor",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "abductor_machine",
+    "name": "Abductor Machine",
+    "category": "Squat",
+    "modality": "Machine",
+    "tags": [
+      "abductor",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "bench_close_grip",
+    "name": "Bench Press (Close-Grip)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "triceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "bench_wide_grip",
+    "name": "Bench Press (Wide-Grip)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "chest"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "bench_spoto",
+    "name": "Spoto Press",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "pause"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "bench_paused",
+    "name": "Bench Press (Paused)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "pause"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "bench_incline_barbell",
+    "name": "Incline Bench Press (Barbell)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "incline"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "bench_decline_barbell",
+    "name": "Decline Bench Press (Barbell)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "decline"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "bench_incline_dumbbell",
+    "name": "Incline Bench Press (Dumbbell)",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "bench",
+      "incline"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "bench_decline_dumbbell",
+    "name": "Decline Bench Press (Dumbbell)",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "bench",
+      "decline"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "bench_dumbbell_flat",
+    "name": "Dumbbell Bench Press",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "bench",
+      "dumbbell"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "bench_floor_press_barbell",
+    "name": "Floor Press (Barbell)",
+    "category": "Bench",
+    "modality": "Barbell",
+    "tags": [
+      "bench",
+      "triceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "bench_floor_press_dumbbell",
+    "name": "Floor Press (Dumbbell)",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "bench",
+      "triceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "bench_machine_press",
+    "name": "Machine Chest Press",
+    "category": "Bench",
+    "modality": "Machine",
+    "tags": [
+      "bench",
+      "machine"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "push_up",
+    "name": "Push-Up",
+    "category": "Bench",
+    "modality": "Bodyweight",
+    "tags": [
+      "push",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "push_up_weighted",
+    "name": "Push-Up (Weighted)",
+    "category": "Bench",
+    "modality": "Bodyweight",
+    "tags": [
+      "push",
+      "weighted"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "dip_parallel_bar",
+    "name": "Parallel Bar Dip",
+    "category": "Bench",
+    "modality": "Bodyweight",
+    "tags": [
+      "dip",
+      "triceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "dip_assisted",
+    "name": "Assisted Dip",
+    "category": "Bench",
+    "modality": "Machine",
+    "tags": [
+      "dip",
+      "triceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "dumbbell_pullover",
+    "name": "Dumbbell Pullover",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "back",
+      "chest"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "cable_fly",
+    "name": "Cable Fly",
+    "category": "Bench",
+    "modality": "Cable",
+    "tags": [
+      "chest",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "dumbbell_fly",
+    "name": "Dumbbell Fly",
+    "category": "Bench",
+    "modality": "Dumbbell",
+    "tags": [
+      "chest",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "pec_deck",
+    "name": "Pec Deck Fly",
+    "category": "Bench",
+    "modality": "Machine",
+    "tags": [
+      "chest",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "triceps_pushdown",
+    "name": "Triceps Pushdown",
+    "category": "Arms",
+    "modality": "Cable",
+    "tags": [
+      "triceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "triceps_overhead_extension",
+    "name": "Overhead Triceps Extension",
+    "category": "Arms",
+    "modality": "Cable",
+    "tags": [
+      "triceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "triceps_skull_crusher",
+    "name": "Skull Crusher",
+    "category": "Arms",
+    "modality": "Barbell",
+    "tags": [
+      "triceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "triceps_dumbbell_kickback",
+    "name": "Triceps Kickback",
+    "category": "Arms",
+    "modality": "Dumbbell",
+    "tags": [
+      "triceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "deadlift_romanian",
+    "name": "Romanian Deadlift",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "hamstrings"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "deadlift_deficit",
+    "name": "Deficit Deadlift",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "deadlift_paused",
+    "name": "Paused Deadlift",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 4,
+    "userDefaultReps": 4
+  },
+  {
+    "id": "deadlift_rack_pull",
+    "name": "Rack Pull",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "deadlift_block_pull",
+    "name": "Block Pull",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "deadlift_stiff_leg",
+    "name": "Stiff-Leg Deadlift",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "hamstrings"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "deadlift_trap_bar",
+    "name": "Trap Bar Deadlift",
+    "category": "Deadlift",
+    "modality": "Trap Bar",
+    "tags": [
+      "deadlift",
+      "trap_bar"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "deadlift_snatch_grip",
+    "name": "Snatch-Grip Deadlift",
+    "category": "Deadlift",
+    "modality": "Barbell",
+    "tags": [
+      "deadlift",
+      "variant"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "single_leg_rdl",
+    "name": "Single-Leg Romanian Deadlift",
+    "category": "Deadlift",
+    "modality": "Dumbbell",
+    "tags": [
+      "deadlift",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "good_morning",
+    "name": "Good Morning",
+    "category": "Posterior Chain",
+    "modality": "Barbell",
+    "tags": [
+      "hamstrings",
+      "posterior_chain"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "hip_thrust_barbell",
+    "name": "Barbell Hip Thrust",
+    "category": "Posterior Chain",
+    "modality": "Barbell",
+    "tags": [
+      "glutes",
+      "posterior_chain"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "glute_bridge_barbell",
+    "name": "Barbell Glute Bridge",
+    "category": "Posterior Chain",
+    "modality": "Barbell",
+    "tags": [
+      "glutes",
+      "posterior_chain"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "back_extension",
+    "name": "Back Extension",
+    "category": "Posterior Chain",
+    "modality": "Bodyweight",
+    "tags": [
+      "posterior_chain",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "reverse_hyper",
+    "name": "Reverse Hyperextension",
+    "category": "Posterior Chain",
+    "modality": "Machine",
+    "tags": [
+      "posterior_chain",
+      "machine"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "cable_pull_through",
+    "name": "Cable Pull-Through",
+    "category": "Posterior Chain",
+    "modality": "Cable",
+    "tags": [
+      "glutes",
+      "hamstrings"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "kettlebell_swing",
+    "name": "Kettlebell Swing",
+    "category": "Posterior Chain",
+    "modality": "Kettlebell",
+    "tags": [
+      "glutes",
+      "conditioning"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "glute_kickback",
+    "name": "Cable Glute Kickback",
+    "category": "Posterior Chain",
+    "modality": "Cable",
+    "tags": [
+      "glutes",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "glute_bridge_single_leg",
+    "name": "Single-Leg Glute Bridge",
+    "category": "Posterior Chain",
+    "modality": "Bodyweight",
+    "tags": [
+      "glutes",
+      "single_leg"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "overhead_press_seated",
+    "name": "Overhead Press (Seated)",
+    "category": "Press",
+    "modality": "Barbell",
+    "tags": [
+      "press",
+      "barbell"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "push_press",
+    "name": "Push Press",
+    "category": "Press",
+    "modality": "Barbell",
+    "tags": [
+      "press",
+      "power"
+    ],
+    "isMainLift": false,
+    "defaultReps": 4,
+    "userDefaultReps": 4
+  },
+  {
+    "id": "z_press",
+    "name": "Z Press",
+    "category": "Press",
+    "modality": "Barbell",
+    "tags": [
+      "press",
+      "stability"
+    ],
+    "isMainLift": false,
+    "defaultReps": 5,
+    "userDefaultReps": 5
+  },
+  {
+    "id": "arnold_press",
+    "name": "Arnold Press",
+    "category": "Press",
+    "modality": "Dumbbell",
+    "tags": [
+      "shoulders",
+      "dumbbell"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "machine_shoulder_press",
+    "name": "Machine Shoulder Press",
+    "category": "Press",
+    "modality": "Machine",
+    "tags": [
+      "shoulders",
+      "machine"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "lateral_raise",
+    "name": "Lateral Raise",
+    "category": "Shoulders",
+    "modality": "Dumbbell",
+    "tags": [
+      "shoulders",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "front_raise",
+    "name": "Front Raise",
+    "category": "Shoulders",
+    "modality": "Dumbbell",
+    "tags": [
+      "shoulders",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "rear_delt_fly",
+    "name": "Rear Delt Fly",
+    "category": "Shoulders",
+    "modality": "Dumbbell",
+    "tags": [
+      "shoulders",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "reverse_pec_deck",
+    "name": "Reverse Pec Deck",
+    "category": "Shoulders",
+    "modality": "Machine",
+    "tags": [
+      "shoulders",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "upright_row",
+    "name": "Upright Row",
+    "category": "Shoulders",
+    "modality": "Barbell",
+    "tags": [
+      "shoulders",
+      "traps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "face_pull",
+    "name": "Face Pull",
+    "category": "Shoulders",
+    "modality": "Cable",
+    "tags": [
+      "rear_delt",
+      "upper_back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "shrug_barbell",
+    "name": "Barbell Shrug",
+    "category": "Shoulders",
+    "modality": "Barbell",
+    "tags": [
+      "traps",
+      "strength"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "shrug_dumbbell",
+    "name": "Dumbbell Shrug",
+    "category": "Shoulders",
+    "modality": "Dumbbell",
+    "tags": [
+      "traps",
+      "strength"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "row_barbell",
+    "name": "Barbell Row",
+    "category": "Back",
+    "modality": "Barbell",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "row_pendlay",
+    "name": "Pendlay Row",
+    "category": "Back",
+    "modality": "Barbell",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "row_single_arm_db",
+    "name": "Single-Arm Dumbbell Row",
+    "category": "Back",
+    "modality": "Dumbbell",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "row_chest_supported",
+    "name": "Chest-Supported Row",
+    "category": "Back",
+    "modality": "Machine",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "row_cable_seated",
+    "name": "Seated Cable Row",
+    "category": "Back",
+    "modality": "Cable",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "row_tbar",
+    "name": "T-Bar Row",
+    "category": "Back",
+    "modality": "Machine",
+    "tags": [
+      "row",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "row_inverted",
+    "name": "Inverted Row",
+    "category": "Back",
+    "modality": "Bodyweight",
+    "tags": [
+      "row",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "lat_pulldown_wide",
+    "name": "Lat Pulldown (Wide-Grip)",
+    "category": "Back",
+    "modality": "Cable",
+    "tags": [
+      "pulldown",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "lat_pulldown_close",
+    "name": "Lat Pulldown (Close-Grip)",
+    "category": "Back",
+    "modality": "Cable",
+    "tags": [
+      "pulldown",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "lat_pulldown_neutral",
+    "name": "Lat Pulldown (Neutral-Grip)",
+    "category": "Back",
+    "modality": "Cable",
+    "tags": [
+      "pulldown",
+      "back"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "pull_up",
+    "name": "Pull-Up",
+    "category": "Back",
+    "modality": "Bodyweight",
+    "tags": [
+      "pull_up",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "chin_up",
+    "name": "Chin-Up",
+    "category": "Back",
+    "modality": "Bodyweight",
+    "tags": [
+      "pull_up",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "pull_up_assisted",
+    "name": "Pull-Up (Assisted)",
+    "category": "Back",
+    "modality": "Machine",
+    "tags": [
+      "pull_up",
+      "assisted"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "pull_up_neutral",
+    "name": "Neutral-Grip Pull-Up",
+    "category": "Back",
+    "modality": "Bodyweight",
+    "tags": [
+      "pull_up",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 8,
+    "userDefaultReps": 8
+  },
+  {
+    "id": "straight_arm_pulldown",
+    "name": "Straight-Arm Pulldown",
+    "category": "Back",
+    "modality": "Cable",
+    "tags": [
+      "lat",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "band_pull_apart",
+    "name": "Band Pull-Apart",
+    "category": "Back",
+    "modality": "Band",
+    "tags": [
+      "upper_back",
+      "mobility"
+    ],
+    "isMainLift": false,
+    "defaultReps": 20,
+    "userDefaultReps": 20
+  },
+  {
+    "id": "barbell_curl",
+    "name": "Barbell Curl",
+    "category": "Arms",
+    "modality": "Barbell",
+    "tags": [
+      "biceps",
+      "strength"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "dumbbell_curl",
+    "name": "Alternating Dumbbell Curl",
+    "category": "Arms",
+    "modality": "Dumbbell",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "hammer_curl",
+    "name": "Hammer Curl",
+    "category": "Arms",
+    "modality": "Dumbbell",
+    "tags": [
+      "biceps",
+      "forearms"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "preacher_curl",
+    "name": "Preacher Curl",
+    "category": "Arms",
+    "modality": "Machine",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 10,
+    "userDefaultReps": 10
+  },
+  {
+    "id": "concentration_curl",
+    "name": "Concentration Curl",
+    "category": "Arms",
+    "modality": "Dumbbell",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "cable_curl",
+    "name": "Cable Curl",
+    "category": "Arms",
+    "modality": "Cable",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "incline_dumbbell_curl",
+    "name": "Incline Dumbbell Curl",
+    "category": "Arms",
+    "modality": "Dumbbell",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "machine_curl",
+    "name": "Biceps Curl Machine",
+    "category": "Arms",
+    "modality": "Machine",
+    "tags": [
+      "biceps",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "reverse_curl",
+    "name": "Reverse Curl",
+    "category": "Arms",
+    "modality": "Barbell",
+    "tags": [
+      "forearms",
+      "biceps"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "wrist_curl",
+    "name": "Wrist Curl",
+    "category": "Arms",
+    "modality": "Barbell",
+    "tags": [
+      "forearms",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "reverse_wrist_curl",
+    "name": "Reverse Wrist Curl",
+    "category": "Arms",
+    "modality": "Barbell",
+    "tags": [
+      "forearms",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "farmer_carry",
+    "name": "Farmer Carry",
+    "category": "Full Body",
+    "modality": "Dumbbell",
+    "tags": [
+      "grip",
+      "conditioning"
+    ],
+    "isMainLift": false,
+    "defaultReps": 40,
+    "userDefaultReps": 40
+  },
+  {
+    "id": "rope_climb",
+    "name": "Rope Climb",
+    "category": "Back",
+    "modality": "Bodyweight",
+    "tags": [
+      "grip",
+      "bodyweight"
+    ],
+    "isMainLift": false,
+    "defaultReps": 6,
+    "userDefaultReps": 6
+  },
+  {
+    "id": "plank",
+    "name": "Plank",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "stability"
+    ],
+    "isMainLift": false,
+    "defaultReps": 60,
+    "userDefaultReps": 60
+  },
+  {
+    "id": "side_plank",
+    "name": "Side Plank",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "stability"
+    ],
+    "isMainLift": false,
+    "defaultReps": 45,
+    "userDefaultReps": 45
+  },
+  {
+    "id": "ab_wheel",
+    "name": "Ab Wheel Rollout",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "anterior"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "hanging_leg_raise",
+    "name": "Hanging Leg Raise",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "anterior"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "weighted_sit_up",
+    "name": "Weighted Sit-Up",
+    "category": "Core",
+    "modality": "Dumbbell",
+    "tags": [
+      "core",
+      "anterior"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "cable_crunch",
+    "name": "Cable Crunch",
+    "category": "Core",
+    "modality": "Cable",
+    "tags": [
+      "core",
+      "isolation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 15,
+    "userDefaultReps": 15
+  },
+  {
+    "id": "pallof_press",
+    "name": "Pallof Press",
+    "category": "Core",
+    "modality": "Cable",
+    "tags": [
+      "core",
+      "anti_rotation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  },
+  {
+    "id": "bird_dog",
+    "name": "Bird Dog",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "stability"
+    ],
+    "isMainLift": false,
+    "defaultReps": 20,
+    "userDefaultReps": 20
+  },
+  {
+    "id": "russian_twist",
+    "name": "Russian Twist",
+    "category": "Core",
+    "modality": "Dumbbell",
+    "tags": [
+      "core",
+      "rotation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 20,
+    "userDefaultReps": 20
+  },
+  {
+    "id": "mountain_climber",
+    "name": "Mountain Climber",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "conditioning"
+    ],
+    "isMainLift": false,
+    "defaultReps": 30,
+    "userDefaultReps": 30
+  },
+  {
+    "id": "hollow_hold",
+    "name": "Hollow Body Hold",
+    "category": "Core",
+    "modality": "Bodyweight",
+    "tags": [
+      "core",
+      "stability"
+    ],
+    "isMainLift": false,
+    "defaultReps": 40,
+    "userDefaultReps": 40
+  },
+  {
+    "id": "suitcase_carry",
+    "name": "Suitcase Carry",
+    "category": "Core",
+    "modality": "Dumbbell",
+    "tags": [
+      "core",
+      "anti_rotation"
+    ],
+    "isMainLift": false,
+    "defaultReps": 30,
+    "userDefaultReps": 30
+  },
+  {
+    "id": "medicine_ball_slam",
+    "name": "Medicine Ball Slam",
+    "category": "Core",
+    "modality": "Medicine Ball",
+    "tags": [
+      "power",
+      "conditioning"
+    ],
+    "isMainLift": false,
+    "defaultReps": 12,
+    "userDefaultReps": 12
+  }
+]

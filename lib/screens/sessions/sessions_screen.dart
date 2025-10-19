@@ -1,82 +1,180 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/session/session_template.dart';
+import '../../domain/session/models.dart';
+import '../../domain/session/programs_provider.dart';
 import '../../domain/session/session_templates_provider.dart';
 import '../../ui/responsive/layout_constants.dart';
 import 'session_overview_screen.dart';
 
 class SessionsScreen extends ConsumerWidget {
-  static const routeName = '/sessions';
+  const SessionsScreen({required this.programId, super.key});
 
-  const SessionsScreen({super.key});
+  final String programId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final templates = ref.watch(sessionTemplatesProvider);
-    final orderedChoices = _sessionChoices
-        .map(
-          (descriptor) => (
-            descriptor,
-            templates.firstWhere(
-              (template) => template.id == descriptor.id,
-              orElse: () => descriptor.fallback,
-            ),
-          ),
-        )
-        .toList();
+    final program = ref.watch(programByIdProvider(programId));
+    if (program == null) {
+      return const Scaffold(body: Center(child: Text('Program not found.')));
+    }
+
+    final templates = ref.watch(sessionTemplatesByProgramProvider(programId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Choose Your Session')),
+      appBar: AppBar(
+        title: Text(program.name),
+        actions: [
+          IconButton(
+            tooltip: 'Edit program',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _promptEditProgram(context, ref, program),
+          ),
+          IconButton(
+            tooltip: program.isActive ? 'Active program' : 'Set active',
+            icon: Icon(program.isActive ? Icons.flag : Icons.flag_outlined),
+            onPressed: () => ref
+                .read(programsProvider.notifier)
+                .setActiveProgram(program.id),
+          ),
+        ],
+      ),
       body: Padding(
         padding: LayoutConstants.responsivePadding(context),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final gap = LayoutConstants.responsiveGap(context);
-            return LayoutConstants.maxWidthConstrained(
-              child: ListView.separated(
-                itemBuilder: (context, index) {
-                  final (descriptor, template) = orderedChoices[index];
-                  return _SessionChoiceCard(
-                    descriptor: descriptor,
-                    template: template,
-                  );
-                },
-                separatorBuilder: (_, __) => SizedBox(height: gap),
-                itemCount: orderedChoices.length,
-              ),
-            );
-          },
+        child: LayoutConstants.maxWidthConstrained(
+          child: ListView.separated(
+            itemCount: templates.length + 1,
+            separatorBuilder: (_, __) =>
+                SizedBox(height: LayoutConstants.responsiveGap(context) / 2),
+            itemBuilder: (context, index) {
+              if (index == templates.length) {
+                return _CreateSessionTile(
+                  onCreate: () => _createSession(context, ref, program),
+                );
+              }
+
+              final template = templates[index];
+              return _SessionTemplateTile(template: template, program: program);
+            },
+          ),
         ),
       ),
     );
   }
+
+  Future<void> _createSession(
+    BuildContext context,
+    WidgetRef ref,
+    Program program,
+  ) async {
+    final id = 'template_${DateTime.now().millisecondsSinceEpoch}';
+    final template = SessionTemplate(
+      id: id,
+      programId: program.id,
+      name: 'New Session',
+      status: SessionStatus.draft,
+      exercises: const [SessionOverviewScreen.defaultAccessoryExercise],
+    );
+    ref.read(sessionTemplatesProvider.notifier).addSession(template);
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SessionOverviewScreen(
+          baseTemplate: template,
+          subtitle: 'Build your template and start when ready',
+          canDeleteTemplate: true,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _promptEditProgram(
+    BuildContext context,
+    WidgetRef ref,
+    Program program,
+  ) async {
+    final controller = TextEditingController(text: program.name);
+    final isBuiltIn = program.type == ProgramType.builtIn;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Program'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(hintText: 'Program name'),
+          ),
+          actions: [
+            if (!isBuiltIn)
+              TextButton(
+                onPressed: () {
+                  ref.read(programsProvider.notifier).removeProgram(program.id);
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Delete'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = controller.text.trim();
+                if (name.isNotEmpty) {
+                  ref
+                      .read(programsProvider.notifier)
+                      .updateProgram(
+                        program.copyWith(name: name, updatedAt: DateTime.now()),
+                      );
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-class _SessionChoiceCard extends StatelessWidget {
-  const _SessionChoiceCard({required this.descriptor, required this.template});
+class _SessionTemplateTile extends ConsumerWidget {
+  const _SessionTemplateTile({required this.template, required this.program});
 
-  final _SessionDescriptor descriptor;
   final SessionTemplate template;
+  final Program program;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subtitle = switch (template.status) {
+      SessionStatus.draft => 'Draft',
+      SessionStatus.active => 'Active',
+      SessionStatus.done => 'Completed',
+    };
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-          child: Text(descriptor.code),
+          child: Text(
+            template.name.isEmpty ? '?' : template.name[0].toUpperCase(),
+          ),
         ),
-        title: Text(descriptor.title),
-        subtitle: Text(descriptor.subtitle),
+        title: Text(template.name),
+        subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-          Navigator.of(context).push(
+        onTap: () async {
+          await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => SessionOverviewScreen(
                 baseTemplate: template,
-                title: descriptor.title,
+                subtitle: 'Review and customize before you start',
+                canDeleteTemplate: true,
               ),
             ),
           );
@@ -86,65 +184,25 @@ class _SessionChoiceCard extends StatelessWidget {
   }
 }
 
-class _SessionDescriptor {
-  const _SessionDescriptor({
-    required this.id,
-    required this.code,
-    required this.title,
-    required this.subtitle,
-    required this.fallback,
-  });
+class _CreateSessionTile extends StatelessWidget {
+  const _CreateSessionTile({required this.onCreate});
 
-  final String id;
-  final String code;
-  final String title;
-  final String subtitle;
-  final SessionTemplate fallback;
+  final Future<void> Function() onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+          child: const Icon(Icons.add),
+        ),
+        title: const Text('Create Session'),
+        subtitle: const Text('Build a new session for this program.'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onCreate,
+      ),
+    );
+  }
 }
-
-const _sessionChoices = [
-  _SessionDescriptor(
-    id: 'session_squat',
-    code: 'S',
-    title: 'Squat Session',
-    subtitle: 'Lower-body focus built around the squat.',
-    fallback: SessionTemplate(
-      id: 'session_squat_fallback',
-      name: 'Squat Session',
-      mainExercise: SessionOverviewScreen.defaultSquatExercise,
-    ),
-  ),
-  _SessionDescriptor(
-    id: 'session_bench',
-    code: 'B',
-    title: 'Bench Session',
-    subtitle: 'Pressing emphasis with accessory support.',
-    fallback: SessionTemplate(
-      id: 'session_bench_fallback',
-      name: 'Bench Session',
-      mainExercise: SessionOverviewScreen.defaultBenchExercise,
-    ),
-  ),
-  _SessionDescriptor(
-    id: 'session_deadlift',
-    code: 'D',
-    title: 'Deadlift Session',
-    subtitle: 'Posterior chain and pull variations.',
-    fallback: SessionTemplate(
-      id: 'session_deadlift_fallback',
-      name: 'Dead Session',
-      mainExercise: SessionOverviewScreen.defaultDeadliftExercise,
-    ),
-  ),
-  _SessionDescriptor(
-    id: 'session_other',
-    code: 'O',
-    title: 'Other Session',
-    subtitle: 'Accessory or custom session builder.',
-    fallback: SessionTemplate(
-      id: 'session_other_fallback',
-      name: 'Accessory Session',
-      mainExercise: SessionOverviewScreen.defaultAccessoryExercise,
-    ),
-  ),
-];

@@ -8,9 +8,7 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Training History'),
-      ),
+      appBar: AppBar(title: const Text('Training History')),
       body: ListView.separated(
         padding: const EdgeInsets.all(24),
         itemBuilder: (context, index) {

@@ -1,12 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/session/demo_data.dart';
 import '../../domain/session/models.dart';
 import '../../domain/session/session_draft_notifier.dart';
-import '../../domain/session/session_template.dart';
 import '../../ui/responsive/layout_constants.dart';
 import '../summary/summary_screen.dart';
+import 'widgets/dismissible_set_row.dart';
 
 class LogScreen extends ConsumerStatefulWidget {
   const LogScreen({super.key, required this.template});
@@ -20,12 +22,22 @@ class LogScreen extends ConsumerStatefulWidget {
 }
 
 class _LogScreenState extends ConsumerState<LogScreen> {
+  int? _expandedExerciseIndex;
+  List<Exercise>? _catalogCache;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(sessionDraftProvider.notifier).loadFromTemplate(widget.template);
+      final notifier = ref.read(sessionDraftProvider.notifier);
+      notifier.loadFromTemplate(widget.template);
+      final exercises = ref.read(sessionDraftProvider).exercises;
+      if (exercises.isNotEmpty) {
+        setState(() {
+          _expandedExerciseIndex = 0;
+        });
+      }
     });
   }
 
@@ -33,11 +45,314 @@ class _LogScreenState extends ConsumerState<LogScreen> {
     Navigator.of(context).pushNamed(SummaryScreen.routeName);
   }
 
+  void _handleExpansion(int index, bool expanded) {
+    setState(() {
+      _expandedExerciseIndex = expanded ? index : null;
+    });
+  }
+
+  Future<void> _changeExercise(SessionExerciseEntry entry) async {
+    final draft = ref.read(sessionDraftProvider);
+    final existingIds = {
+      for (final exercise in draft.exercises) exercise.exercise.id,
+    }..remove(entry.exercise.id);
+
+    final catalog = await _loadCatalog();
+    final options = catalog.where((candidate) {
+      final isCurrent = candidate.id == entry.exercise.id;
+      if (!isCurrent && existingIds.contains(candidate.id)) return false;
+      return true;
+    }).toList();
+
+    if (options.isEmpty) {
+      _showSnackBar('No alternative exercises available.');
+      return;
+    }
+
+    final selection = await _showExercisePicker(
+      candidates: options,
+      title: 'Swap Exercise',
+    );
+
+    if (selection == null || selection.id == entry.exercise.id) return;
+    ref
+        .read(sessionDraftProvider.notifier)
+        .replaceExercise(entry.exercise.id, selection);
+  }
+
+  void _updateExerciseSetWeight(
+    String exerciseId,
+    int setIndex,
+    double weight,
+  ) {
+    final draft = ref.read(sessionDraftProvider);
+    final entry = draft.exerciseById(exerciseId);
+    if (entry == null || setIndex < 0 || setIndex >= entry.sets.length) {
+      return;
+    }
+    final set = entry.sets[setIndex].copyWith(weightKg: weight);
+    ref
+        .read(sessionDraftProvider.notifier)
+        .updateExerciseSet(exerciseId, setIndex, set);
+  }
+
+  void _updateExerciseSetReps(String exerciseId, int setIndex, int reps) {
+    final draft = ref.read(sessionDraftProvider);
+    final entry = draft.exerciseById(exerciseId);
+    if (entry == null || setIndex < 0 || setIndex >= entry.sets.length) {
+      return;
+    }
+    final set = entry.sets[setIndex].copyWith(reps: reps);
+    final notifier = ref.read(sessionDraftProvider.notifier);
+    notifier.updateExerciseSet(exerciseId, setIndex, set);
+    notifier.updateExerciseDefaultReps(exerciseId, reps);
+  }
+
+  void _addSet(SessionExerciseEntry entry) {
+    ref.read(sessionDraftProvider.notifier).addExerciseSet(entry.exercise.id);
+    setState(() {
+      final draft = ref.read(sessionDraftProvider);
+      _expandedExerciseIndex = draft.exercises.indexWhere(
+        (e) => e.exercise.id == entry.exercise.id,
+      );
+    });
+  }
+
+  void _removeSet(String exerciseId, int setIndex) {
+    ref
+        .read(sessionDraftProvider.notifier)
+        .removeExerciseSet(exerciseId, setIndex);
+    setState(() {});
+  }
+
+  void _logCurrentSet() {
+    final draft = ref.read(sessionDraftProvider);
+    if (draft.exercises.isEmpty) {
+      _showSnackBar('No exercises available to log.');
+      return;
+    }
+    final index = _expandedExerciseIndex == null
+        ? 0
+        : _expandedExerciseIndex!.clamp(0, draft.exercises.length - 1);
+    final entry = draft.exercises[index];
+    final pendingIndex = entry.currentSetIndex;
+    final notifier = ref.read(sessionDraftProvider.notifier);
+    final result = notifier.logNextSet(entry.exercise.id);
+
+    switch (result) {
+      case LogSetResult.success:
+        FocusScope.of(context).unfocus();
+        final setNumber = (pendingIndex ?? 0) + 1;
+        _showSnackBar('Set $setNumber logged for ${entry.exercise.name}.');
+        break;
+      case LogSetResult.noPendingSets:
+        _showSnackBar(
+          'All sets for ${entry.exercise.name} are already logged.',
+        );
+        break;
+      case LogSetResult.invalidValues:
+        _showSnackBar('Enter kg and reps before logging this set.');
+        break;
+      case LogSetResult.missingExercise:
+        _showSnackBar('Exercise no longer available.');
+        break;
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<List<Exercise>> _loadCatalog() async {
+    if (_catalogCache != null) return _catalogCache!;
+    final raw = await rootBundle.loadString('assets/data/exercises.json');
+    final decoded = jsonDecode(raw) as List<dynamic>;
+    _catalogCache = decoded
+        .map((item) => Exercise.fromJson(item as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    return _catalogCache!;
+  }
+
+  Future<Exercise?> _showExercisePicker({
+    required List<Exercise> candidates,
+    String title = 'Choose an Exercise',
+  }) async {
+    if (candidates.isEmpty) return null;
+
+    return showModalBottomSheet<Exercise>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final theme = Theme.of(context);
+        var filter = '';
+        final expandedCategories = <String>{};
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                final query = filter.trim().toLowerCase();
+                final filtered = query.isEmpty
+                    ? candidates
+                    : candidates.where((exercise) {
+                        final haystack = StringBuffer()
+                          ..write(exercise.name.toLowerCase())
+                          ..write(' ')
+                          ..write(exercise.category.toLowerCase())
+                          ..write(' ')
+                          ..write(exercise.modality.toLowerCase())
+                          ..write(' ')
+                          ..write(exercise.tags.join(' ').toLowerCase());
+                        return haystack.toString().contains(query);
+                      }).toList();
+
+                final categoryMap = <String, List<Exercise>>{};
+                for (final item in filtered) {
+                  final key = item.category.isEmpty ? 'Other' : item.category;
+                  categoryMap.putIfAbsent(key, () => []).add(item);
+                }
+                final categories = categoryMap.keys.toList()..sort();
+                for (final key in categories) {
+                  categoryMap[key]!.sort((a, b) => a.name.compareTo(b.name));
+                  expandedCategories.add(key);
+                }
+
+                return Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        Container(
+                          height: 4,
+                          width: 48,
+                          decoration: BoxDecoration(
+                            color: theme.dividerColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title, style: theme.textTheme.titleMedium),
+                              const SizedBox(height: 12),
+                              TextField(
+                                decoration: const InputDecoration(
+                                  hintText: 'Search exercises…',
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
+                                ),
+                                onChanged: (value) =>
+                                    setModalState(() => filter = value),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: categories.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    query.isEmpty
+                                        ? 'No exercises available.'
+                                        : 'No exercises found for "${filter.trim()}".',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                )
+                              : ListView(
+                                  controller: scrollController,
+                                  padding: const EdgeInsets.only(bottom: 24),
+                                  children: [
+                                    for (final category in categories)
+                                      ExpansionTile(
+                                        title: Text(
+                                          category,
+                                          style: theme.textTheme.labelLarge
+                                              ?.copyWith(
+                                                color:
+                                                    theme.colorScheme.primary,
+                                              ),
+                                        ),
+                                        tilePadding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                        ),
+                                        initiallyExpanded: expandedCategories
+                                            .contains(category),
+                                        onExpansionChanged: (expanded) {
+                                          setModalState(() {
+                                            if (expanded) {
+                                              expandedCategories.add(category);
+                                            } else {
+                                              expandedCategories.remove(
+                                                category,
+                                              );
+                                            }
+                                          });
+                                        },
+                                        children: [
+                                          for (final item
+                                              in categoryMap[category]!)
+                                            ListTile(
+                                              title: Text(item.name),
+                                              subtitle: item.modality.isEmpty
+                                                  ? null
+                                                  : Text(item.modality),
+                                              onTap: () => Navigator.of(
+                                                context,
+                                              ).pop(item),
+                                            ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(sessionDraftProvider);
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    final mainLift = draft.mainLift;
+    final exercises = draft.exercises;
+    final padding = LayoutConstants.responsivePadding(context);
+    final gap = LayoutConstants.responsiveGap(context) / 2;
+    final primaryExercise = draft.primaryExercise?.exercise;
+    final expandedIndex = _expandedExerciseIndex;
+
+    if (exercises.isNotEmpty &&
+        (expandedIndex == null || expandedIndex >= exercises.length)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _expandedExerciseIndex = 0;
+        });
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -45,9 +360,9 @@ class _LogScreenState extends ConsumerState<LogScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.template.name),
-            if (mainLift != null)
+            if (primaryExercise != null)
               Text(
-                'Logging ${mainLift.name}',
+                'Logging ${primaryExercise.name}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -55,66 +370,64 @@ class _LogScreenState extends ConsumerState<LogScreen> {
           ],
         ),
       ),
+      floatingActionButton: exercises.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: _logCurrentSet,
+              icon: const Icon(Icons.check),
+              label: const Text('Log Set'),
+            ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Padding(
-          padding: LayoutConstants.responsivePadding(context),
+          padding: EdgeInsets.fromLTRB(
+            padding.left,
+            padding.top,
+            padding.right,
+            padding.bottom + (exercises.isEmpty ? 0 : 80),
+          ),
           child: LayoutConstants.maxWidthConstrained(
             child: Column(
               children: [
                 Expanded(
                   child: ListView(
+                    padding: EdgeInsets.zero,
                     children: [
-                      _MainExerciseCard(
-                        draft: draft,
-                        onSelectLift: () => _showMainLiftSelector(context),
-                        onWeightChanged: _updateMainSetWeight,
-                        onRepsChanged: _updateMainSetReps,
-                        onAdjustReps: _adjustMainReps,
-                      ),
-                      SizedBox(
-                        height: LayoutConstants.responsiveGap(context) / 2,
-                      ),
-                      if (draft.supports.isEmpty)
-                        const _NoSupportExercisesCard()
+                      if (exercises.isEmpty)
+                        const _EmptyExercisesMessage()
                       else
-                        for (var i = 0; i < draft.supports.length; i++) ...[
-                          if (i > 0)
-                            SizedBox(
-                              height:
-                                  LayoutConstants.responsiveGap(context) / 2,
-                            ),
-                          _SupportExerciseCard(
-                            entry: draft.supports[i],
-                            onWeightChanged: (index, weight) =>
-                                _updateSupportSetWeight(
-                                  draft.supports[i].exercise.id,
-                                  index,
+                        for (var i = 0; i < exercises.length; i++) ...[
+                          if (i > 0) SizedBox(height: gap),
+                          _SessionExerciseCard(
+                            entry: exercises[i],
+                            isExpanded: _expandedExerciseIndex == i,
+                            onToggle: (expanded) =>
+                                _handleExpansion(i, expanded),
+                            onWeightChanged: (setIndex, weight) =>
+                                _updateExerciseSetWeight(
+                                  exercises[i].exercise.id,
+                                  setIndex,
                                   weight,
                                 ),
-                            onRepsChanged: (index, reps) =>
-                                _updateSupportSetReps(
-                                  draft.supports[i].exercise.id,
-                                  index,
+                            onRepsChanged: (setIndex, reps) =>
+                                _updateExerciseSetReps(
+                                  exercises[i].exercise.id,
+                                  setIndex,
                                   reps,
                                 ),
-                            onAdjustReps: (index, delta) => _adjustSupportReps(
-                              draft.supports[i].exercise.id,
-                              index,
-                              delta,
-                            ),
-                            onChangeExercise: () => _changeSupportExercise(
-                              draft.supports[i].exercise.id,
-                            ),
+                            onChangeExercise: () =>
+                                _changeExercise(exercises[i]),
+                            onAddSet: () => _addSet(exercises[i]),
+                            onRemoveSet: (setIndex) =>
+                                _removeSet(exercises[i].exercise.id, setIndex),
                           ),
                         ],
-                      SizedBox(
-                        height: LayoutConstants.responsiveGap(context) / 2,
-                      ),
+                      SizedBox(height: gap),
                       _SessionMetricsRow(draft: draft),
                     ],
                   ),
                 ),
-                SizedBox(height: LayoutConstants.responsiveGap(context) / 2),
+                SizedBox(height: gap),
                 FilledButton(
                   onPressed: () => _viewSummary(context),
                   child: const Text('Review Summary'),
@@ -126,245 +439,51 @@ class _LogScreenState extends ConsumerState<LogScreen> {
       ),
     );
   }
-
-  Future<void> _showMainLiftSelector(BuildContext context) async {
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    final draft = ref.read(sessionDraftProvider);
-
-    final selected = await showModalBottomSheet<Exercise>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: ListView(
-            children: [
-              const ListTile(
-                title: Text('Select main lift'),
-                subtitle: Text('Pick a lift to anchor this session.'),
-              ),
-              for (final exercise in demoMainLifts)
-                RadioListTile<String>(
-                  value: exercise.id,
-                  groupValue: draft.mainLift?.id,
-                  title: Text(exercise.name),
-                  subtitle: Text(exercise.category),
-                  onChanged: (_) => Navigator.of(context).pop(exercise),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (selected != null) {
-      notifier.setMainLift(selected);
-    }
-  }
-
-  Future<void> _changeSupportExercise(String exerciseId) async {
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    final draft = ref.read(sessionDraftProvider);
-    final entry = draft.supports.firstWhere(
-      (element) => element.exercise.id == exerciseId,
-    );
-    final existingIds = {
-      for (final support in draft.supports) support.exercise.id,
-    }..remove(exerciseId);
-
-    final options = demoExerciseCatalog
-        .where(
-          (exercise) =>
-              exercise.id == exerciseId || !existingIds.contains(exercise.id),
-        )
-        .toList();
-
-    if (options.isEmpty) return;
-
-    final selected = await showModalBottomSheet<Exercise>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: ListView.separated(
-            itemBuilder: (context, index) {
-              final candidate = options[index];
-              return ListTile(
-                title: Text(candidate.name),
-                subtitle: Text(candidate.category),
-                onTap: () => Navigator.of(context).pop(candidate),
-              );
-            },
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemCount: options.length,
-          ),
-        );
-      },
-    );
-
-    if (selected == null || selected.id == entry.exercise.id) return;
-    notifier.replaceSupportExercise(exerciseId, selected);
-  }
-
-  void _updateMainSetWeight(int index, double weight) {
-    final draft = ref.read(sessionDraftProvider);
-    if (index < 0 || index >= draft.mainLiftSets.length) return;
-    final set = draft.mainLiftSets[index].copyWith(weightKg: weight);
-    ref.read(sessionDraftProvider.notifier).updateMainLiftSet(index, set);
-  }
-
-  void _updateMainSetReps(int index, int reps) {
-    final draft = ref.read(sessionDraftProvider);
-    if (index < 0 || index >= draft.mainLiftSets.length) return;
-    final set = draft.mainLiftSets[index].copyWith(reps: reps);
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    notifier.updateMainLiftSet(index, set);
-    notifier.updateMainLiftDefaultReps(reps);
-  }
-
-  void _updateSupportSetWeight(String exerciseId, int index, double weight) {
-    final draft = ref.read(sessionDraftProvider);
-    final entry = draft.supports.firstWhere(
-      (element) => element.exercise.id == exerciseId,
-    );
-    if (index < 0 || index >= entry.sets.length) return;
-    final set = entry.sets[index].copyWith(weightKg: weight);
-    ref
-        .read(sessionDraftProvider.notifier)
-        .updateSupportSet(exerciseId, index, set);
-  }
-
-  void _updateSupportSetReps(String exerciseId, int index, int reps) {
-    final draft = ref.read(sessionDraftProvider);
-    final entry = draft.supports.firstWhere(
-      (element) => element.exercise.id == exerciseId,
-    );
-    if (index < 0 || index >= entry.sets.length) return;
-    final set = entry.sets[index].copyWith(reps: reps);
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    notifier.updateSupportSet(exerciseId, index, set);
-    notifier.updateSupportDefaultReps(exerciseId, reps);
-  }
-
-  void _adjustMainReps(int index, int delta) {
-    final draft = ref.read(sessionDraftProvider);
-    if (index < 0 || index >= draft.mainLiftSets.length) return;
-    final current = draft.mainLiftSets[index];
-    final newReps = (current.reps + delta).clamp(1, 1000);
-    if (newReps == current.reps) return;
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    notifier.updateMainLiftSet(index, current.copyWith(reps: newReps));
-    notifier.updateMainLiftDefaultReps(newReps);
-  }
-
-  void _adjustSupportReps(String exerciseId, int index, int delta) {
-    final draft = ref.read(sessionDraftProvider);
-    final entry = draft.supports.firstWhere(
-      (element) => element.exercise.id == exerciseId,
-    );
-    if (index < 0 || index >= entry.sets.length) return;
-    final current = entry.sets[index];
-    final newReps = (current.reps + delta).clamp(1, 1000);
-    if (newReps == current.reps) return;
-    final notifier = ref.read(sessionDraftProvider.notifier);
-    notifier.updateSupportSet(
-      exerciseId,
-      index,
-      current.copyWith(reps: newReps),
-    );
-    notifier.updateSupportDefaultReps(exerciseId, newReps);
-  }
 }
 
-class _MainExerciseCard extends StatelessWidget {
-  const _MainExerciseCard({
-    required this.draft,
-    required this.onSelectLift,
-    required this.onWeightChanged,
-    required this.onRepsChanged,
-    required this.onAdjustReps,
-  });
-
-  final SessionDraft draft;
-  final VoidCallback onSelectLift;
-  final void Function(int index, double weight) onWeightChanged;
-  final void Function(int index, int reps) onRepsChanged;
-  final void Function(int index, int delta) onAdjustReps;
-
-  @override
-  Widget build(BuildContext context) {
-    final exercise = draft.mainLift;
-
-    if (exercise == null) {
-      return Card(
-        child: ListTile(
-          leading: const _ExerciseAvatar(icon: Icons.add),
-          title: const Text('Select main lift'),
-          subtitle: const Text('Pick a main exercise to start logging sets.'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: onSelectLift,
-        ),
-      );
-    }
-
-    final sets = draft.mainLiftSets;
-    return Card(
-      child: ExpansionTile(
-        leading: _ExerciseAvatar(label: exercise.name),
-        title: Text(exercise.name),
-        subtitle: Text(
-          sets.isEmpty
-              ? 'No sets logged yet'
-              : '${sets.length} set${sets.length == 1 ? '' : 's'} logged',
-        ),
-        maintainState: true,
-        initiallyExpanded: true,
-        childrenPadding: const EdgeInsets.only(bottom: 12),
-        children: [
-          for (var i = 0; i < sets.length; i++)
-            _SetRow(
-              index: i,
-              set: sets[i],
-              onWeightChanged: (value) => onWeightChanged(i, value),
-              onRepsChanged: (value) => onRepsChanged(i, value),
-              onAdjustReps: (delta) => onAdjustReps(i, delta),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SupportExerciseCard extends StatelessWidget {
-  const _SupportExerciseCard({
+class _SessionExerciseCard extends StatelessWidget {
+  const _SessionExerciseCard({
     required this.entry,
+    required this.isExpanded,
+    required this.onToggle,
     required this.onWeightChanged,
     required this.onRepsChanged,
-    required this.onAdjustReps,
     required this.onChangeExercise,
+    required this.onAddSet,
+    required this.onRemoveSet,
   });
 
-  final SupportExerciseEntry entry;
-  final void Function(int index, double weight) onWeightChanged;
-  final void Function(int index, int reps) onRepsChanged;
-  final void Function(int index, int delta) onAdjustReps;
+  final SessionExerciseEntry entry;
+  final bool isExpanded;
+  final ValueChanged<bool> onToggle;
+  final void Function(int setIndex, double weight) onWeightChanged;
+  final void Function(int setIndex, int reps) onRepsChanged;
   final VoidCallback onChangeExercise;
+  final VoidCallback onAddSet;
+  final void Function(int setIndex) onRemoveSet;
 
   @override
   Widget build(BuildContext context) {
     final sets = entry.sets;
-    final theme = Theme.of(context);
+    final loggedCount = sets.where((set) => set.isLogged).length;
+    final subtitle = sets.isEmpty
+        ? 'No sets configured'
+        : '$loggedCount of ${sets.length} sets logged';
+
+    final tileKey = ValueKey(
+      'exercise_${entry.exercise.id}_${isExpanded ? 'open' : 'closed'}',
+    );
 
     return Card(
       child: ExpansionTile(
+        key: tileKey,
+        initiallyExpanded: isExpanded,
+        maintainState: true,
         leading: _ExerciseAvatar(label: entry.exercise.name),
         title: Text(entry.exercise.name),
         subtitle: Row(
           children: [
-            Expanded(
-              child: Text(
-                sets.isEmpty
-                    ? 'No sets logged yet'
-                    : '${sets.length} set${sets.length == 1 ? '' : 's'} logged',
-              ),
-            ),
+            Expanded(child: Text(subtitle)),
             IconButton(
               tooltip: 'Change exercise',
               icon: const Icon(Icons.swap_horiz),
@@ -372,33 +491,43 @@ class _SupportExerciseCard extends StatelessWidget {
             ),
           ],
         ),
-        maintainState: true,
+        onExpansionChanged: onToggle,
         childrenPadding: const EdgeInsets.only(bottom: 12),
         children: [
-          if (sets.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                'Sets will appear here once logging begins.',
-                style: theme.textTheme.bodySmall,
+          for (var i = 0; i < sets.length; i++)
+            (() {
+              final index = i;
+              return DismissibleSetRow(
+                dismissibleKey: ValueKey('${entry.exercise.id}_set_$index'),
+                onRemove: () => onRemoveSet(index),
+                child: _SetRow(
+                  index: index,
+                  set: sets[index],
+                  isCurrent: entry.currentSetIndex == index,
+                  onWeightChanged: (value) => onWeightChanged(index, value),
+                  onRepsChanged: (value) => onRepsChanged(index, value),
+                ),
+              );
+            })(),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: onAddSet,
+                icon: const Icon(Icons.add),
+                label: const Text('Add another set'),
               ),
             ),
-          for (var i = 0; i < sets.length; i++)
-            _SetRow(
-              index: i,
-              set: sets[i],
-              onWeightChanged: (value) => onWeightChanged(i, value),
-              onRepsChanged: (value) => onRepsChanged(i, value),
-              onAdjustReps: (delta) => onAdjustReps(i, delta),
-            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _NoSupportExercisesCard extends StatelessWidget {
-  const _NoSupportExercisesCard();
+class _EmptyExercisesMessage extends StatelessWidget {
+  const _EmptyExercisesMessage();
 
   @override
   Widget build(BuildContext context) {
@@ -407,7 +536,7 @@ class _NoSupportExercisesCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Text(
-          'No additional exercises were selected in the overview.',
+          'No exercises were selected for this session.',
           style: theme.textTheme.bodyMedium,
         ),
       ),
@@ -421,14 +550,14 @@ class _SetRow extends StatefulWidget {
     required this.set,
     required this.onWeightChanged,
     required this.onRepsChanged,
-    required this.onAdjustReps,
+    required this.isCurrent,
   });
 
   final int index;
   final LiftSet set;
   final ValueChanged<double> onWeightChanged;
   final ValueChanged<int> onRepsChanged;
-  final void Function(int delta) onAdjustReps;
+  final bool isCurrent;
 
   @override
   State<_SetRow> createState() => _SetRowState();
@@ -442,7 +571,7 @@ class _SetRowState extends State<_SetRow> {
   void initState() {
     super.initState();
     _weightController = TextEditingController(
-      text: widget.set.weightKg == 0 ? '' : _formatWeight(widget.set.weightKg),
+      text: _formatWeight(widget.set.weightKg),
     );
     _repsController = TextEditingController(text: widget.set.reps.toString());
   }
@@ -450,9 +579,7 @@ class _SetRowState extends State<_SetRow> {
   @override
   void didUpdateWidget(covariant _SetRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final weightText = widget.set.weightKg == 0
-        ? ''
-        : _formatWeight(widget.set.weightKg);
+    final weightText = _formatWeight(widget.set.weightKg);
     if (_weightController.text != weightText) {
       _weightController.text = weightText;
     }
@@ -471,10 +598,8 @@ class _SetRowState extends State<_SetRow> {
 
   void _handleWeightSubmitted(String value) {
     final parsed = double.tryParse(value);
-    if (parsed == null || parsed <= 0) {
-      _weightController.text = widget.set.weightKg == 0
-          ? ''
-          : _formatWeight(widget.set.weightKg);
+    if (parsed == null || parsed < 0) {
+      _weightController.text = _formatWeight(widget.set.weightKg);
       return;
     }
     widget.onWeightChanged(parsed);
@@ -492,11 +617,28 @@ class _SetRowState extends State<_SetRow> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLogged = widget.set.isLogged;
+    final highlightColor = widget.isCurrent && !isLogged
+        ? theme.colorScheme.secondaryContainer
+        : isLogged
+        ? theme.colorScheme.surfaceVariant.withOpacity(0.6)
+        : null;
+    final borderColor = widget.isCurrent && !isLogged
+        ? theme.colorScheme.secondary
+        : isLogged
+        ? theme.colorScheme.outline
+        : theme.dividerColor;
+    final textStyle = theme.textTheme.titleSmall?.copyWith(
+      fontWeight: widget.isCurrent ? FontWeight.w600 : FontWeight.w500,
+      color: isLogged ? theme.colorScheme.onSurfaceVariant : null,
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border.all(color: theme.dividerColor),
+          color: highlightColor,
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Padding(
@@ -510,10 +652,7 @@ class _SetRowState extends State<_SetRow> {
 
               return Row(
                 children: [
-                  Text(
-                    '${widget.index + 1}',
-                    style: theme.textTheme.titleSmall,
-                  ),
+                  Text('${widget.index + 1}', style: textStyle),
                   SizedBox(width: gap),
                   _InlineNumberField(
                     controller: _weightController,
@@ -532,12 +671,7 @@ class _SetRowState extends State<_SetRow> {
                     keyboardType: TextInputType.number,
                     width: fieldWidth,
                   ),
-                  SizedBox(width: gap),
-                  _RepsCounter(
-                    reps: widget.set.reps,
-                    onDecrement: () => widget.onAdjustReps(-1),
-                    onIncrement: () => widget.onAdjustReps(1),
-                  ),
+                  const Spacer(),
                 ],
               );
             },
@@ -555,6 +689,7 @@ class _InlineNumberField extends StatelessWidget {
     required this.onSubmitted,
     required this.keyboardType,
     this.width,
+    this.enabled = true,
   });
 
   final TextEditingController controller;
@@ -562,6 +697,7 @@ class _InlineNumberField extends StatelessWidget {
   final ValueChanged<String> onSubmitted;
   final TextInputType keyboardType;
   final double? width;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -570,6 +706,7 @@ class _InlineNumberField extends StatelessWidget {
       width: width,
       child: TextField(
         controller: controller,
+        enabled: enabled,
         keyboardType: keyboardType,
         textInputAction: TextInputAction.done,
         onSubmitted: onSubmitted,
@@ -584,60 +721,6 @@ class _InlineNumberField extends StatelessWidget {
         ),
         style: theme.textTheme.titleMedium?.copyWith(fontSize: 15),
       ),
-    );
-  }
-}
-
-class _RepsCounter extends StatelessWidget {
-  const _RepsCounter({
-    required this.reps,
-    required this.onDecrement,
-    required this.onIncrement,
-  });
-
-  final int reps;
-  final VoidCallback onDecrement;
-  final VoidCallback onIncrement;
-
-  @override
-  Widget build(BuildContext context) {
-    final borderColor = Theme.of(context).dividerColor;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: IconButton(
-            iconSize: 20,
-            onPressed: reps > 1 ? onDecrement : null,
-            splashRadius: 20,
-            icon: const Icon(Icons.remove),
-          ),
-        ),
-        const SizedBox(width: 4),
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 8),
-        //   child: Text(
-        //     reps.toString(),
-        //     style: Theme.of(context).textTheme.titleMedium,
-        //   ),
-        // ),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: IconButton(
-            iconSize: 20,
-            onPressed: onIncrement,
-            splashRadius: 20,
-            icon: const Icon(Icons.add),
-          ),
-        ),
-      ],
     );
   }
 }

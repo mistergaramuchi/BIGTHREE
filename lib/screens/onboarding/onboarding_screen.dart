@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../sessions/sessions_screen.dart';
+import '../programs/programs_screen.dart';
 
 class OnboardingScreen extends StatelessWidget {
   static const routeName = '/onboarding';
@@ -8,15 +8,15 @@ class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
   void _startSession(BuildContext context) {
-    Navigator.of(context).pushNamed(SessionsScreen.routeName);
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProgramsScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome Coach'),
-      ),
+      appBar: AppBar(title: const Text('Welcome Coach')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'screens/history/history_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
-import 'screens/sessions/sessions_screen.dart';
+import 'screens/programs/programs_screen.dart';
 import 'screens/summary/summary_screen.dart';
 
 void main() {
@@ -28,7 +28,7 @@ class LiftingApp extends StatelessWidget {
       ),
       routes: {
         OnboardingScreen.routeName: (_) => const OnboardingScreen(),
-        SessionsScreen.routeName: (_) => const SessionsScreen(),
+        ProgramsScreen.routeName: (_) => const ProgramsScreen(),
         SummaryScreen.routeName: (_) => const SummaryScreen(),
         HistoryScreen.routeName: (_) => const HistoryScreen(),
       },

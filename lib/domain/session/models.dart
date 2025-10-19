@@ -1,8 +1,45 @@
 import 'dart:math';
 
-/// Represents a single catalog exercise. For now this is a minimal model so we
-/// can wire UI and state; data can be expanded once the Firestore catalog
-/// lands.
+enum SessionStatus { draft, active, done }
+
+enum ProgramType { builtIn, user }
+
+class Program {
+  const Program({
+    required this.id,
+    required this.name,
+    required this.type,
+    this.isActive = false,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String name;
+  final ProgramType type;
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  Program copyWith({
+    String? id,
+    String? name,
+    ProgramType? type,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Program(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
 class Exercise {
   const Exercise({
     required this.id,
@@ -45,15 +82,132 @@ class Exercise {
       userDefaultReps: userDefaultReps ?? this.userDefaultReps,
     );
   }
+
+  factory Exercise.fromJson(Map<String, dynamic> json) {
+    final defaultReps = json['defaultReps'] as int? ?? 6;
+    return Exercise(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      category: json['category'] as String? ?? '',
+      modality: json['modality'] as String? ?? '',
+      tags:
+          (json['tags'] as List<dynamic>?)
+              ?.map((tag) => tag.toString())
+              .toList() ??
+          const [],
+      isMainLift: json['isMainLift'] as bool? ?? false,
+      defaultReps: defaultReps,
+      userDefaultReps: json['userDefaultReps'] as int? ?? defaultReps,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'category': category,
+      'modality': modality,
+      'tags': tags,
+      'isMainLift': isMainLift,
+      'defaultReps': defaultReps,
+      'userDefaultReps': userDefaultReps,
+    };
+  }
 }
 
-/// A single set entry for either the main lift or a support exercise.
+class SessionTemplate {
+  SessionTemplate({
+    required this.id,
+    required this.programId,
+    required this.name,
+    required this.status,
+    this.exercises = const [],
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
+
+  final String id;
+  final String programId;
+  final String name;
+  final SessionStatus status;
+  final List<Exercise> exercises;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  SessionTemplate copyWith({
+    String? id,
+    String? programId,
+    String? name,
+    SessionStatus? status,
+    List<Exercise>? exercises,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return SessionTemplate(
+      id: id ?? this.id,
+      programId: programId ?? this.programId,
+      name: name ?? this.name,
+      status: status ?? this.status,
+      exercises: exercises ?? this.exercises,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class TrainingSession {
+  const TrainingSession({
+    required this.id,
+    this.programId,
+    this.templateId,
+    required this.name,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String? programId;
+  final String? templateId;
+  final String name;
+  final SessionStatus status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  TrainingSession copyWith({
+    String? id,
+    String? programId,
+    String? templateId,
+    String? name,
+    SessionStatus? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return TrainingSession(
+      id: id ?? this.id,
+      programId: programId ?? this.programId,
+      templateId: templateId ?? this.templateId,
+      name: name ?? this.name,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
 class LiftSet {
-  const LiftSet({required this.weightKg, required this.reps, this.rir});
+  const LiftSet({
+    required this.weightKg,
+    required this.reps,
+    this.rir,
+    this.isLogged = false,
+  });
 
   final double weightKg;
   final int reps;
   final int? rir;
+  final bool isLogged;
 
   double get volumeKg => weightKg * reps;
 
@@ -62,73 +216,84 @@ class LiftSet {
     return weightKg * (1 + reps / 30);
   }
 
-  LiftSet copyWith({double? weightKg, int? reps, int? rir}) {
+  LiftSet copyWith({double? weightKg, int? reps, int? rir, bool? isLogged}) {
     return LiftSet(
       weightKg: weightKg ?? this.weightKg,
       reps: reps ?? this.reps,
       rir: rir ?? this.rir,
+      isLogged: isLogged ?? this.isLogged,
     );
   }
 }
 
-/// Collection of support exercise sets.
-class SupportExerciseEntry {
-  const SupportExerciseEntry({required this.exercise, this.sets = const []});
+class SessionExerciseEntry {
+  const SessionExerciseEntry({
+    required this.exercise,
+    this.sets = const [],
+  });
 
   final Exercise exercise;
   final List<LiftSet> sets;
 
-  double get volumeKg => sets.fold(0, (running, set) => running + set.volumeKg);
+  int get currentSetIndex => sets.indexWhere((set) => !set.isLogged);
 
-  SupportExerciseEntry copyWith({Exercise? exercise, List<LiftSet>? sets}) {
-    return SupportExerciseEntry(
+  LiftSet? get currentSet =>
+      currentSetIndex == -1 ? null : sets[currentSetIndex];
+
+  bool get isComplete => currentSetIndex == -1;
+
+  double get loggedVolumeKg => sets.fold<double>(
+    0,
+    (running, set) => running + (set.isLogged ? set.volumeKg : 0),
+  );
+
+  SessionExerciseEntry copyWith({
+    Exercise? exercise,
+    List<LiftSet>? sets,
+  }) {
+    return SessionExerciseEntry(
       exercise: exercise ?? this.exercise,
       sets: sets ?? this.sets,
     );
   }
 }
 
-/// A mutable draft of the session surface (main lift + supports).
 class SessionDraft {
-  const SessionDraft({
-    this.mainLift,
-    this.mainLiftSets = const [],
-    this.supports = const [],
-  });
+  const SessionDraft({this.exercises = const []});
 
   factory SessionDraft.empty() => const SessionDraft();
 
-  final Exercise? mainLift;
-  final List<LiftSet> mainLiftSets;
-  final List<SupportExerciseEntry> supports;
+  final List<SessionExerciseEntry> exercises;
 
-  bool get hasMainLift => mainLift != null;
+  bool get hasExercises => exercises.isNotEmpty;
 
-  double get mainLiftVolumeKg =>
-      mainLiftSets.fold(0, (running, set) => running + set.volumeKg);
+  SessionExerciseEntry? get primaryExercise =>
+      exercises.isEmpty ? null : exercises.first;
 
-  double get supportVolumeKg =>
-      supports.fold(0, (running, entry) => running + entry.volumeKg);
-
-  double get totalVolumeKg => mainLiftVolumeKg + supportVolumeKg;
+  double get totalVolumeKg =>
+      exercises.fold(0, (running, entry) => running + entry.loggedVolumeKg);
 
   double get estimated1RmKg {
-    if (mainLiftSets.isEmpty) return 0;
-    return mainLiftSets.fold<double>(
+    final primary = primaryExercise;
+    if (primary == null) return 0;
+    final loggedSets = primary.sets
+        .where((set) => set.isLogged)
+        .toList(growable: false);
+    if (loggedSets.isEmpty) return 0;
+    return loggedSets.fold<double>(
       0,
       (currentMax, set) => max(currentMax, set.epleyEstimate),
     );
   }
 
-  SessionDraft copyWith({
-    Exercise? mainLift,
-    List<LiftSet>? mainLiftSets,
-    List<SupportExerciseEntry>? supports,
-  }) {
-    return SessionDraft(
-      mainLift: mainLift ?? this.mainLift,
-      mainLiftSets: mainLiftSets ?? this.mainLiftSets,
-      supports: supports ?? this.supports,
-    );
+  SessionExerciseEntry? exerciseById(String exerciseId) {
+    for (final entry in exercises) {
+      if (entry.exercise.id == exerciseId) return entry;
+    }
+    return null;
+  }
+
+  SessionDraft copyWith({List<SessionExerciseEntry>? exercises}) {
+    return SessionDraft(exercises: exercises ?? this.exercises);
   }
 }

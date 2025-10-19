@@ -1,5 +1,45 @@
 import 'models.dart';
-import 'session_template.dart';
+
+final _seedDate = DateTime.utc(2024, 1, 1);
+
+final demoPrograms = <Program>[
+  Program(
+    id: 'program_5x5',
+    name: 'StrongLifts 5×5',
+    type: ProgramType.builtIn,
+    isActive: true,
+    createdAt: _seedDate,
+    updatedAt: _seedDate,
+  ),
+  Program(
+    id: 'program_ppl',
+    name: 'Push / Pull / Legs',
+    type: ProgramType.builtIn,
+    createdAt: _seedDate,
+    updatedAt: _seedDate,
+  ),
+  Program(
+    id: 'program_nsuns',
+    name: 'nSuns LP',
+    type: ProgramType.builtIn,
+    createdAt: _seedDate,
+    updatedAt: _seedDate,
+  ),
+  Program(
+    id: 'program_peak9',
+    name: 'Peak-9',
+    type: ProgramType.builtIn,
+    createdAt: _seedDate,
+    updatedAt: _seedDate,
+  ),
+  Program(
+    id: 'program_quick',
+    name: 'Quick Sessions',
+    type: ProgramType.builtIn,
+    createdAt: _seedDate,
+    updatedAt: _seedDate,
+  ),
+];
 
 const Exercise squatHighBar = Exercise(
   id: 'squat_high_bar',
@@ -23,6 +63,17 @@ const Exercise squatLowBar = Exercise(
   userDefaultReps: 5,
 );
 
+const Exercise frontSquat = Exercise(
+  id: 'front_squat',
+  name: 'Front Squat',
+  category: 'Squat',
+  modality: 'Barbell',
+  tags: ['squat', 'barbell', 'compound'],
+  isMainLift: true,
+  defaultReps: 5,
+  userDefaultReps: 5,
+);
+
 const Exercise benchCompetition = Exercise(
   id: 'bench_competition',
   name: 'Bench Press (Competition)',
@@ -30,8 +81,19 @@ const Exercise benchCompetition = Exercise(
   modality: 'Barbell',
   tags: ['bench', 'barbell', 'compound'],
   isMainLift: true,
-  defaultReps: 6,
-  userDefaultReps: 6,
+  defaultReps: 5,
+  userDefaultReps: 5,
+);
+
+const Exercise overheadPressStanding = Exercise(
+  id: 'overhead_press',
+  name: 'Overhead Press',
+  category: 'Press',
+  modality: 'Barbell',
+  tags: ['press', 'barbell', 'compound'],
+  isMainLift: true,
+  defaultReps: 5,
+  userDefaultReps: 5,
 );
 
 const Exercise deadliftConventional = Exercise(
@@ -71,8 +133,8 @@ const Exercise pullUp = Exercise(
   category: 'Back',
   modality: 'Bodyweight',
   tags: ['pull', 'bodyweight'],
-  defaultReps: 6,
-  userDefaultReps: 6,
+  defaultReps: 8,
+  userDefaultReps: 8,
 );
 
 const Exercise dumbbellBench = Exercise(
@@ -81,8 +143,8 @@ const Exercise dumbbellBench = Exercise(
   category: 'Bench',
   modality: 'Dumbbell',
   tags: ['bench', 'dumbbell'],
-  defaultReps: 12,
-  userDefaultReps: 12,
+  defaultReps: 10,
+  userDefaultReps: 10,
 );
 
 const Exercise inclineBench = Exercise(
@@ -101,14 +163,6 @@ const Exercise legPress = Exercise(
   tags: ['legs', 'machine'],
 );
 
-const Exercise walkingLunge = Exercise(
-  id: 'walking_lunge',
-  name: 'Walking Lunge',
-  category: 'Squat Assistance',
-  modality: 'Dumbbell',
-  tags: ['legs', 'single_leg'],
-);
-
 const Exercise hipThrust = Exercise(
   id: 'hip_thrust',
   name: 'Barbell Hip Thrust',
@@ -125,14 +179,6 @@ const Exercise backExtension = Exercise(
   tags: ['posterior_chain'],
 );
 
-const Exercise tricepPushdown = Exercise(
-  id: 'tricep_pushdown',
-  name: 'Triceps Pushdown',
-  category: 'Arms',
-  modality: 'Cable',
-  tags: ['arms', 'isolation'],
-);
-
 const Exercise lateralRaise = Exercise(
   id: 'lateral_raise',
   name: 'Dumbbell Lateral Raise',
@@ -141,56 +187,194 @@ const Exercise lateralRaise = Exercise(
   tags: ['shoulders', 'isolation'],
 );
 
-const List<Exercise> demoExerciseCatalog = [
-  barbellRow,
-  romanianDeadlift,
-  pullUp,
-  dumbbellBench,
-];
+const Exercise seatedCableRow = Exercise(
+  id: 'seated_cable_row',
+  name: 'Seated Cable Row',
+  category: 'Back',
+  modality: 'Cable',
+  tags: ['row', 'back'],
+  defaultReps: 12,
+  userDefaultReps: 12,
+);
 
-const List<Exercise> demoSupportExercises = [
-  barbellRow,
-  romanianDeadlift,
-  pullUp,
-  dumbbellBench,
-  inclineBench,
-  legPress,
-  walkingLunge,
-  hipThrust,
-  backExtension,
-  tricepPushdown,
-  lateralRaise,
-];
+const Exercise latPulldown = Exercise(
+  id: 'lat_pulldown',
+  name: 'Lat Pulldown',
+  category: 'Back',
+  modality: 'Cable',
+  tags: ['pulldown', 'back'],
+  defaultReps: 12,
+  userDefaultReps: 12,
+);
 
-const demoSessionTemplates = [
+const Exercise legCurl = Exercise(
+  id: 'leg_curl',
+  name: 'Leg Curl',
+  category: 'Hamstrings',
+  modality: 'Machine',
+  tags: ['hamstrings', 'machine'],
+  defaultReps: 12,
+  userDefaultReps: 12,
+);
+
+const Exercise dumbbellShoulderPress = Exercise(
+  id: 'dumbbell_shoulder_press',
+  name: 'Dumbbell Shoulder Press',
+  category: 'Shoulders',
+  modality: 'Dumbbell',
+  tags: ['shoulders', 'dumbbell'],
+  defaultReps: 10,
+  userDefaultReps: 10,
+);
+
+const Exercise tricepPushdown = Exercise(
+  id: 'tricep_pushdown',
+  name: 'Triceps Pushdown',
+  category: 'Arms',
+  modality: 'Cable',
+  tags: ['arms', 'isolation'],
+);
+
+const Exercise hammerCurl = Exercise(
+  id: 'hammer_curl',
+  name: 'Hammer Curl',
+  category: 'Arms',
+  modality: 'Dumbbell',
+  tags: ['biceps', 'forearms'],
+  defaultReps: 12,
+  userDefaultReps: 12,
+);
+
+const Exercise farmerCarry = Exercise(
+  id: 'farmer_carry',
+  name: 'Farmer Carry',
+  category: 'Conditioning',
+  modality: 'Dumbbell',
+  tags: ['grip', 'conditioning'],
+  defaultReps: 40,
+  userDefaultReps: 40,
+);
+
+final demoSessionTemplates = <SessionTemplate>[
+  // StrongLifts 5×5
   SessionTemplate(
-    id: 'session_deadlift',
-    name: 'Dead Session',
-    mainExercise: deadliftConventional,
-    supportExercises: [hipThrust, barbellRow, backExtension],
-  ),
-  SessionTemplate(
-    id: 'session_squat',
-    name: 'Squat Session',
-    mainExercise: squatLowBar,
-    supportExercises: [legPress, walkingLunge, romanianDeadlift],
-  ),
-  SessionTemplate(
-    id: 'session_bench',
-    name: 'Bench Session',
-    mainExercise: benchCompetition,
-    supportExercises: [
-      inclineBench,
-      dumbbellBench,
-      tricepPushdown,
-      lateralRaise,
+    id: 'template_5x5_a',
+    programId: 'program_5x5',
+    name: 'Workout A',
+    status: SessionStatus.active,
+    exercises: const [
+      squatLowBar,
+      benchCompetition,
+      barbellRow,
     ],
   ),
   SessionTemplate(
-    id: 'session_other',
-    name: 'Accessory Session',
-    mainExercise: barbellRow,
-    supportExercises: [pullUp, dumbbellBench],
+    id: 'template_5x5_b',
+    programId: 'program_5x5',
+    name: 'Workout B',
+    status: SessionStatus.active,
+    exercises: const [
+      squatLowBar,
+      overheadPressStanding,
+      deadliftConventional,
+    ],
+  ),
+  // Push / Pull / Legs
+  SessionTemplate(
+    id: 'template_ppl_push',
+    programId: 'program_ppl',
+    name: 'Push Day',
+    status: SessionStatus.active,
+    exercises: const [
+      benchCompetition,
+      inclineBench,
+      dumbbellShoulderPress,
+      tricepPushdown,
+    ],
+  ),
+  SessionTemplate(
+    id: 'template_ppl_pull',
+    programId: 'program_ppl',
+    name: 'Pull Day',
+    status: SessionStatus.active,
+    exercises: const [
+      barbellRow,
+      seatedCableRow,
+      latPulldown,
+      hammerCurl,
+    ],
+  ),
+  SessionTemplate(
+    id: 'template_ppl_legs',
+    programId: 'program_ppl',
+    name: 'Leg Day',
+    status: SessionStatus.active,
+    exercises: const [
+      squatLowBar,
+      legPress,
+      romanianDeadlift,
+      legCurl,
+    ],
+  ),
+  // nSuns LP (Upper/Lower split)
+  SessionTemplate(
+    id: 'template_nsuns_upper',
+    programId: 'program_nsuns',
+    name: 'Upper Volume',
+    status: SessionStatus.active,
+    exercises: const [
+      benchCompetition,
+      overheadPressStanding,
+      barbellRow,
+      pullUp,
+    ],
+  ),
+  SessionTemplate(
+    id: 'template_nsuns_lower',
+    programId: 'program_nsuns',
+    name: 'Lower Volume',
+    status: SessionStatus.active,
+    exercises: const [
+      squatHighBar,
+      deadliftConventional,
+      legPress,
+      hipThrust,
+    ],
+  ),
+  // Peak-9 (intensity / power / volume)
+  SessionTemplate(
+    id: 'template_peak9_intensity',
+    programId: 'program_peak9',
+    name: 'Intensity Day',
+    status: SessionStatus.active,
+    exercises: const [
+      deadliftConventional,
+      benchCompetition,
+      barbellRow,
+    ],
+  ),
+  SessionTemplate(
+    id: 'template_peak9_power',
+    programId: 'program_peak9',
+    name: 'Power Day',
+    status: SessionStatus.active,
+    exercises: const [
+      squatHighBar,
+      overheadPressStanding,
+      pullUp,
+    ],
+  ),
+  SessionTemplate(
+    id: 'template_peak9_volume',
+    programId: 'program_peak9',
+    name: 'Volume Day',
+    status: SessionStatus.active,
+    exercises: const [
+      frontSquat,
+      dumbbellBench,
+      seatedCableRow,
+      farmerCarry,
+    ],
   ),
 ];
 
@@ -199,4 +383,24 @@ const demoMainLifts = [
   squatHighBar,
   squatLowBar,
   benchCompetition,
+  overheadPressStanding,
+];
+
+const demoExerciseCatalog = [
+  barbellRow,
+  romanianDeadlift,
+  pullUp,
+  dumbbellBench,
+  inclineBench,
+  legPress,
+  hipThrust,
+  backExtension,
+  lateralRaise,
+  seatedCableRow,
+  latPulldown,
+  legCurl,
+  dumbbellShoulderPress,
+  tricepPushdown,
+  hammerCurl,
+  farmerCarry,
 ];

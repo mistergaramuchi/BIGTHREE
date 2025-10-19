@@ -15,9 +15,7 @@ class SummaryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Session Summary'),
-      ),
+      appBar: AppBar(title: const Text('Session Summary')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -27,10 +25,7 @@ class SummaryScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Card(
               child: ListTile(
-                title: Text(
-                  '— kg',
-                  style: textTheme.headlineSmall,
-                ),
+                title: Text('— kg', style: textTheme.headlineSmall),
                 subtitle: const Text('Computed via Epley formula'),
               ),
             ),
@@ -39,10 +34,7 @@ class SummaryScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Card(
               child: ListTile(
-                title: Text(
-                  '— kg',
-                  style: textTheme.headlineSmall,
-                ),
+                title: Text('— kg', style: textTheme.headlineSmall),
                 subtitle: const Text('Main + support lifts'),
               ),
             ),

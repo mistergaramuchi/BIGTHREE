@@ -16,6 +16,11 @@ _Last updated: 2025-10-17_
 - 2025-10-17 15:48Z — Refined logging UI with expandable exercise tiles, inline kg editing, reps counters, and exercise-level default rep tracking.
 - 2025-10-17 17:24Z — Entailed default 3-set layout per exercise (no manual add/clear), swapped exercises via inline icons, and ensured phone-friendly weight/reps editors with updated tests.
 - 2025-10-18 07:34Z — Introduced responsive layout constants, centered max-width content, and made inline controls adapt to breakpoints across sessions, overview, and log screens. !
+- 2025-10-18 11:05Z — Replaced static session chooser with program-centric home + program providers, added sample programs (5×5, PPL, nSuns, Peak-9, Quick Sessions), and wired sessions workflow through program-scoped templates.
+- 2025-10-18 11:06Z — Swapped log/add exercise sheets to load from the JSON catalog with search + category expansion and removed reliance on demo lists in the logging flow.
+- 2025-10-18 11:08Z — Updated session editing to auto-save template changes (rename, add/remove exercises), allow template deletion, and promoted unified exercise lists in `SessionTemplate` and tests.
+- 2025-10-18 11:10Z — Dropped main/support exercise fields across the domain model, refitted demo data to single exercise arrays, and refreshed notifier/tests for the simplified structure.
+- 2025-10-18 11:12Z — Routed every exercise picker (overview + log) through the JSON catalog loader, eliminating demo list fallbacks so all menus surface the full database.
 
 ---
 
@@ -254,6 +259,7 @@ docs/
 **Arms:** Curls (all types), Triceps extensions, Forearm curls.  
 **Core:** Planks, Rollouts, Hanging Leg Raise, Pallof, Dead Bug, Bird Dog.  
 _Total ≈110 entries in `exercises.json`._
+
 
 ---
 

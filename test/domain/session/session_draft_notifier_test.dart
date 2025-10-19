@@ -1,134 +1,124 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_application_1/domain/session/demo_data.dart';
 import 'package:flutter_application_1/domain/session/models.dart';
 import 'package:flutter_application_1/domain/session/session_draft_notifier.dart';
 
-void _logTest(String message) {
-  debugPrint('\n[Test] $message');
-}
-
 void main() {
   group('SessionDraftNotifier', () {
     late SessionDraftNotifier notifier;
-    const squat = Exercise(
-      id: 'squat_high_bar',
-      name: 'Back Squat (High-Bar)',
-      category: 'squat',
-      modality: 'barbell',
-      tags: ['squat', 'barbell', 'compound'],
-      isMainLift: true,
-    );
-    const bench = Exercise(
-      id: 'bench_comp',
-      name: 'Competition Bench Press',
-      category: 'bench',
-      modality: 'barbell',
-      tags: ['bench', 'barbell', 'compound'],
-      isMainLift: true,
-    );
-    const row = Exercise(
-      id: 'barbell_row',
-      name: 'Barbell Row',
-      category: 'back',
-      modality: 'barbell',
-      tags: ['row', 'back'],
-    );
 
     setUp(() {
       notifier = SessionDraftNotifier();
     });
 
-    test('loadFromTemplate seeds main lift and supports', () {
-      _logTest('SessionDraftNotifier > loadFromTemplate seeds draft');
+    test('loadFromTemplate seeds exercises with primary first', () {
       final template = demoSessionTemplates.first;
       notifier.loadFromTemplate(template);
 
-      expect(notifier.state.mainLift?.id, template.mainExercise.id);
-      expect(notifier.state.supports.length, template.supportExercises.length);
-      expect(notifier.state.mainLiftSets.length, 3);
+      final exercises = notifier.state.exercises;
+      expect(exercises.length, template.exercises.length);
+      expect(exercises.first.exercise.id, template.exercises.first.id);
+      expect(exercises.first.sets.length, 3);
+    });
+
+    test('updateExerciseSet persists changes', () {
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final primary = notifier.state.exercises.first;
+      final mainId = primary.exercise.id;
+      notifier.updateExerciseSet(
+        mainId,
+        1,
+        primary.sets[1].copyWith(weightKg: 120, reps: 8),
+      );
+
+      final updated = notifier.state.exerciseById(mainId)!;
+      expect(updated.sets[1].weightKg, 120);
+      expect(updated.sets[1].reps, 8);
+      expect(updated.sets[1].isLogged, isFalse);
+    });
+
+    test('logNextSet uses seeded defaults and updates aggregates', () {
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final mainEntry = notifier.state.exercises.first;
+      final mainId = mainEntry.exercise.id;
+
+      final result = notifier.logNextSet(mainId);
+      expect(result, LogSetResult.success);
+
+      final updatedPrimary = notifier.state.exercises.first;
+      expect(updatedPrimary.sets[0].isLogged, isTrue);
+      expect(updatedPrimary.currentSetIndex, 1);
+      expect(updatedPrimary.sets[0].weightKg, greaterThan(0));
+      expect(notifier.state.totalVolumeKg, greaterThan(0));
+      expect(notifier.state.estimated1RmKg, greaterThan(0));
+    });
+
+    test('replaceExercise swaps exercise and resets sets', () {
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final primary = notifier.state.exercises.first;
+      final replacement = demoExerciseCatalog.firstWhere(
+        (exercise) => exercise.id != primary.exercise.id,
+      );
+
+      notifier.updateExerciseSet(
+        primary.exercise.id,
+        0,
+        primary.sets[0].copyWith(weightKg: 100),
+      );
+
+      notifier.replaceExercise(primary.exercise.id, replacement);
+
+      final updated = notifier.state.exercises.first;
+      expect(updated.exercise.id, replacement.id);
+      expect(updated.sets.first.weightKg, isNot(100));
       expect(
-        notifier.state.mainLiftSets,
-        everyElement(predicate<LiftSet>((set) => set.reps > 0)),
+        updated.sets.every((set) => set.reps == replacement.userDefaultReps),
+        isTrue,
       );
+      expect(updated.sets.every((set) => set.weightKg >= 0), isTrue);
+      expect(updated.sets.every((set) => set.isLogged == false), isTrue);
     });
 
-    test('selecting a new main lift clears existing main lift sets', () {
-      _logTest('SessionDraftNotifier > selecting a new main lift clears sets');
-      notifier.setMainLift(squat);
-      notifier.updateMainLiftSet(
-        0,
-        const LiftSet(weightKg: 150, reps: 5, rir: 1),
-      );
-      expect(notifier.state.mainLiftSets.length, 3);
+    test('addExerciseSet appends a pending set with defaults', () {
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final mainEntry = notifier.state.exercises.first;
+      final mainId = mainEntry.exercise.id;
+      notifier.addExerciseSet(mainId);
 
-      notifier.setMainLift(bench);
-      expect(notifier.state.mainLift?.id, bench.id);
-      expect(notifier.state.mainLiftSets.length, 3);
+      final updated = notifier.state.exerciseById(mainId)!;
+      expect(updated.sets.length, mainEntry.sets.length + 1);
+      final newSet = updated.sets.last;
+      expect(newSet.isLogged, isFalse);
+      expect(newSet.reps, mainEntry.exercise.userDefaultReps);
     });
 
-    test('computes e1RM and volume for main lift sets', () {
-      _logTest('SessionDraftNotifier > computes e1RM and volume aggregates');
-      notifier.setMainLift(squat);
-      notifier
-        ..updateMainLiftSet(0, const LiftSet(weightKg: 150, reps: 5))
-        ..updateMainLiftSet(1, const LiftSet(weightKg: 160, reps: 3))
-        ..updateMainLiftSet(2, const LiftSet(weightKg: 0, reps: 1));
+    test('removeExerciseSet drops the target set', () {
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final mainEntry = notifier.state.exercises.first;
+      final mainId = mainEntry.exercise.id;
+      notifier.removeExerciseSet(mainId, 1);
 
-      expect(notifier.state.mainLiftVolumeKg, 1230);
-      expect(notifier.state.estimated1RmKg, closeTo(176.0, 0.01));
-    });
-
-    test('manages support exercise sets and drops empty entries', () {
-      _logTest('SessionDraftNotifier > manages support sets and pruning');
-      notifier.setMainLift(squat);
-      notifier.updateMainLiftSet(0, const LiftSet(weightKg: 150, reps: 5));
-      notifier.upsertSupportExercise(row);
-      notifier.updateSupportSet(
-        row.id,
-        0,
-        const LiftSet(weightKg: 80, reps: 10),
-      );
-
-      SupportExerciseEntry? support;
-      try {
-        support = notifier.state.supports.firstWhere(
-          (entry) => entry.exercise.id == row.id,
-        );
-      } catch (_) {
-        support = null;
-      }
-      expect(support, isNotNull);
-      expect(support!.sets.first.weightKg, 80);
-      expect(notifier.state.supportVolumeKg, 800);
-
-      notifier.updateSupportSet(
-        row.id,
-        0,
-        const LiftSet(weightKg: 85, reps: 10),
-      );
-      expect(notifier.state.supportVolumeKg, 850);
-
-      expect(notifier.state.totalVolumeKg, 1600);
-    });
-
-    test('removing support exercise without sets is a no-op', () {
-      _logTest('SessionDraftNotifier > removing empty support is no-op');
-      notifier.upsertSupportExercise(row);
-      notifier.removeSupportExercise(row.id);
-      expect(notifier.state.supports, isEmpty);
+      final updated = notifier.state.exerciseById(mainId)!;
+      expect(updated.sets.length, mainEntry.sets.length - 1);
     });
 
     test('updates user default reps when requested', () {
-      _logTest('SessionDraftNotifier > updates user default reps');
-      notifier.setMainLift(squat);
-      notifier.updateMainLiftDefaultReps(8);
-      expect(notifier.state.mainLift?.userDefaultReps, 8);
+      notifier.loadFromTemplate(demoSessionTemplates.first);
+      final exercises = notifier.state.exercises;
+      final primaryId = exercises.first.exercise.id;
+      notifier.updateExerciseDefaultReps(primaryId, 8);
+      expect(notifier.state.exercises.first.exercise.userDefaultReps, 8);
 
-      notifier.upsertSupportExercise(row);
-      notifier.updateSupportDefaultReps(row.id, 12);
-      expect(notifier.state.supports.first.exercise.userDefaultReps, 12);
+      final accessory = exercises[1];
+      notifier.updateExerciseDefaultReps(accessory.exercise.id, 12);
+      expect(
+        notifier.state
+            .exerciseById(accessory.exercise.id)
+            ?.exercise
+            .userDefaultReps,
+        12,
+      );
     });
   });
 }

@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models.dart';
-import 'session_template.dart';
 
 final sessionDraftProvider =
     StateNotifierProvider<SessionDraftNotifier, SessionDraft>(
       (ref) => SessionDraftNotifier(),
     );
+
+enum LogSetResult { success, missingExercise, noPendingSets, invalidValues }
 
 class SessionDraftNotifier extends StateNotifier<SessionDraft> {
   SessionDraftNotifier() : super(SessionDraft.empty());
@@ -16,137 +17,115 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
   }
 
   void loadFromTemplate(SessionTemplate template) {
-    state = SessionDraft(
-      mainLift: template.mainExercise,
-      mainLiftSets: _seedSetsFor(template.mainExercise),
-      supports: template.supportExercises
-          .map((e) => SupportExerciseEntry(exercise: e, sets: _seedSetsFor(e)))
-          .toList(),
-    );
-  }
-
-  void setMainLift(Exercise exercise) {
-    final sameLift = state.mainLift?.id == exercise.id;
-    state = state.copyWith(
-      mainLift: exercise,
-      mainLiftSets: sameLift && state.mainLiftSets.isNotEmpty
-          ? state.mainLiftSets
-          : _seedSetsFor(exercise),
-    );
-  }
-
-  void clearMainLift() {
-    state = state.copyWith(mainLift: null, mainLiftSets: <LiftSet>[]);
-  }
-
-  void addMainLiftSet(LiftSet set) {
-    state = state.copyWith(mainLiftSets: [...state.mainLiftSets, set]);
-  }
-
-  void updateMainLiftSet(int index, LiftSet set) {
-    if (index < 0 || index >= state.mainLiftSets.length) return;
-    final updatedSets = [...state.mainLiftSets];
-    updatedSets[index] = set;
-    state = state.copyWith(mainLiftSets: updatedSets);
-  }
-
-  void removeMainLiftSet(int index) {
-    if (index < 0 || index >= state.mainLiftSets.length) return;
-    final updatedSets = [...state.mainLiftSets]..removeAt(index);
-    state = state.copyWith(mainLiftSets: updatedSets);
-  }
-
-  void updateMainLiftDefaultReps(int reps) {
-    final lift = state.mainLift;
-    if (lift == null) return;
-    state = state.copyWith(mainLift: lift.copyWith(userDefaultReps: reps));
-  }
-
-  void upsertSupportExercise(Exercise exercise) {
-    final idx = _supportIndexFor(exercise.id);
-    if (idx != -1) {
-      final supports = [...state.supports];
-      supports[idx] = supports[idx].copyWith(exercise: exercise);
-      state = state.copyWith(supports: supports);
+    if (template.exercises.isEmpty) {
+      state = SessionDraft.empty();
       return;
     }
 
-    state = state.copyWith(
-      supports: [
-        ...state.supports,
-        SupportExerciseEntry(exercise: exercise, sets: _seedSetsFor(exercise)),
-      ],
-    );
+    final entries = template.exercises
+        .map(
+          (exercise) => SessionExerciseEntry(
+            exercise: exercise,
+            sets: _seedSetsFor(exercise),
+          ),
+        )
+        .toList();
+
+    state = SessionDraft(exercises: entries);
   }
 
-  void removeSupportExercise(String exerciseId) {
-    final idx = _supportIndexFor(exerciseId);
+  void updateExerciseSet(String exerciseId, int setIndex, LiftSet set) {
+    final idx = _exerciseIndexFor(exerciseId);
     if (idx == -1) return;
-    final updatedSupports = [...state.supports]..removeAt(idx);
-    state = state.copyWith(supports: updatedSupports);
-  }
-
-  void updateSupportDefaultReps(String exerciseId, int reps) {
-    final idx = _supportIndexFor(exerciseId);
-    if (idx == -1) return;
-    final supports = [...state.supports];
-    final entry = supports[idx];
-    supports[idx] = entry.copyWith(
-      exercise: entry.exercise.copyWith(userDefaultReps: reps),
-    );
-    state = state.copyWith(supports: supports);
-  }
-
-  void replaceSupportExercise(String exerciseId, Exercise newExercise) {
-    final idx = _supportIndexFor(exerciseId);
-    if (idx == -1) return;
-    final supports = [...state.supports];
-    supports[idx] = SupportExerciseEntry(
-      exercise: newExercise,
-      sets: _seedSetsFor(newExercise),
-    );
-    state = state.copyWith(supports: supports);
-  }
-
-  void addSupportSet(String exerciseId, LiftSet set) {
-    final idx = _supportIndexFor(exerciseId);
-    if (idx == -1) {
-      throw ArgumentError(
-        'Support exercise with id $exerciseId not found; call upsertSupportExercise first.',
-      );
-    }
-    final supports = [...state.supports];
-    final entry = supports[idx];
-    supports[idx] = entry.copyWith(sets: [...entry.sets, set]);
-    state = state.copyWith(supports: supports);
-  }
-
-  void updateSupportSet(String exerciseId, int setIndex, LiftSet set) {
-    final idx = _supportIndexFor(exerciseId);
-    if (idx == -1) return;
-    final entry = state.supports[idx];
+    final entry = state.exercises[idx];
     if (setIndex < 0 || setIndex >= entry.sets.length) return;
     final sets = [...entry.sets];
     sets[setIndex] = set;
-    final supports = [...state.supports];
-    supports[idx] = entry.copyWith(sets: sets);
-    state = state.copyWith(supports: supports);
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(sets: sets);
+    state = state.copyWith(exercises: exercises);
   }
 
-  void removeSupportSet(String exerciseId, int setIndex) {
-    final idx = _supportIndexFor(exerciseId);
+  void updateExerciseDefaultReps(String exerciseId, int reps) {
+    final idx = _exerciseIndexFor(exerciseId);
     if (idx == -1) return;
-    final entry = state.supports[idx];
-    if (setIndex < 0 || setIndex >= entry.sets.length) return;
-    final sets = [...entry.sets]..removeAt(setIndex);
+    final entry = state.exercises[idx];
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(
+      exercise: entry.exercise.copyWith(userDefaultReps: reps),
+    );
+    state = state.copyWith(exercises: exercises);
+  }
 
-    final supports = [...state.supports];
-    if (sets.isEmpty) {
-      supports.removeAt(idx);
-    } else {
-      supports[idx] = entry.copyWith(sets: sets);
+  void replaceExercise(String exerciseId, Exercise newExercise) {
+    final idx = _exerciseIndexFor(exerciseId);
+    if (idx == -1) return;
+    final exercises = [...state.exercises];
+    exercises[idx] = SessionExerciseEntry(
+      exercise: newExercise,
+      sets: _seedSetsFor(newExercise),
+    );
+    state = state.copyWith(exercises: exercises);
+  }
+
+  void addExerciseSet(String exerciseId) {
+    final idx = _exerciseIndexFor(exerciseId);
+    if (idx == -1) return;
+    final entry = state.exercises[idx];
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(
+      sets: [...entry.sets, _defaultSetFor(entry.exercise)],
+    );
+    state = state.copyWith(exercises: exercises);
+  }
+
+  void removeExerciseSet(String exerciseId, int setIndex) {
+    final idx = _exerciseIndexFor(exerciseId);
+    if (idx == -1) return;
+    final entry = state.exercises[idx];
+    if (setIndex < 0 || setIndex >= entry.sets.length) return;
+    final updatedSets = [...entry.sets]..removeAt(setIndex);
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(sets: updatedSets);
+    state = state.copyWith(exercises: exercises);
+  }
+
+  LogSetResult logNextSet(String exerciseId) {
+    final idx = _exerciseIndexFor(exerciseId);
+    if (idx == -1) return LogSetResult.missingExercise;
+    final entry = state.exercises[idx];
+    final nextIndex = entry.currentSetIndex;
+    if (nextIndex == -1) return LogSetResult.noPendingSets;
+    final candidate = entry.sets[nextIndex];
+    final modality = entry.exercise.modality.toLowerCase();
+    final requiresLoad = modality != 'bodyweight';
+
+    if (candidate.reps <= 0) return LogSetResult.invalidValues;
+    if (requiresLoad && candidate.weightKg <= 0) {
+      return LogSetResult.invalidValues;
     }
-    state = state.copyWith(supports: supports);
+    if (!requiresLoad && candidate.weightKg < 0) {
+      return LogSetResult.invalidValues;
+    }
+
+    final updatedSets = [...entry.sets];
+    updatedSets[nextIndex] = candidate.copyWith(isLogged: true);
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(sets: updatedSets);
+    state = state.copyWith(exercises: exercises);
+    return LogSetResult.success;
+  }
+
+  void markSetPending(String exerciseId, int setIndex) {
+    final idx = _exerciseIndexFor(exerciseId);
+    if (idx == -1) return;
+    final entry = state.exercises[idx];
+    if (setIndex < 0 || setIndex >= entry.sets.length) return;
+    final sets = [...entry.sets];
+    sets[setIndex] = sets[setIndex].copyWith(isLogged: false);
+    final exercises = [...state.exercises];
+    exercises[idx] = entry.copyWith(sets: sets);
+    state = state.copyWith(exercises: exercises);
   }
 
   List<LiftSet> _seedSetsFor(Exercise exercise) {
@@ -154,11 +133,24 @@ class SessionDraftNotifier extends StateNotifier<SessionDraft> {
   }
 
   LiftSet _defaultSetFor(Exercise exercise) {
-    return LiftSet(weightKg: 0, reps: exercise.userDefaultReps);
+    return LiftSet(
+      weightKg: _defaultWeightFor(exercise),
+      reps: exercise.userDefaultReps,
+      isLogged: false,
+    );
   }
 
-  int _supportIndexFor(String exerciseId) {
-    return state.supports.indexWhere(
+  double _defaultWeightFor(Exercise exercise) {
+    final modality = exercise.modality.toLowerCase();
+    if (modality == 'bodyweight') return 0;
+    if (modality == 'barbell') return 20;
+    if (modality == 'dumbbell') return 10;
+    if (modality == 'machine') return 15;
+    return exercise.isMainLift ? 20 : 10;
+  }
+
+  int _exerciseIndexFor(String exerciseId) {
+    return state.exercises.indexWhere(
       (entry) => entry.exercise.id == exerciseId,
     );
   }
