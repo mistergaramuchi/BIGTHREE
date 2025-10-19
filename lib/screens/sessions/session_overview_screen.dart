@@ -1,10 +1,9 @@
-import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/session/demo_data.dart';
+import '../../domain/session/exercise_catalog_loader.dart';
 import '../../domain/session/models.dart';
 import '../../domain/session/session_templates_provider.dart';
 import '../../ui/responsive/layout_constants.dart';
@@ -36,7 +35,6 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
   late SessionTemplate _template;
   late List<Exercise> _selectedExercises;
   late String _sessionName;
-  List<Exercise>? _catalogCache;
 
   bool get _hasExercises => _selectedExercises.isNotEmpty;
 
@@ -53,14 +51,18 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
   }
 
   Future<List<Exercise>> _getExerciseCatalog() async {
-    if (_catalogCache != null) return _catalogCache!;
-    final raw = await rootBundle.loadString('assets/data/exercises.json');
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    _catalogCache = decoded
-        .map((item) => Exercise.fromJson(item as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
-    return _catalogCache!;
+    return ExerciseCatalogLoader.instance.load();
+  }
+
+  void _showCatalogLoadError() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Unable to load exercise catalog. Confirm assets/data/exercises.json is bundled.',
+        ),
+      ),
+    );
   }
 
   @override
@@ -113,7 +115,6 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
                             );
                           }
                           final exercise = _selectedExercises[index];
-                          final isMain = index == 0;
                           return ListTile(
                             leading: CircleAvatar(child: Text('${index + 1}')),
                             title: Text(exercise.name),
@@ -130,13 +131,12 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
                                   icon: const Icon(Icons.swap_horiz),
                                   onPressed: () => _changeExercise(index),
                                 ),
-                                if (!isMain)
-                                  IconButton(
-                                    tooltip: 'Remove exercise',
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: () =>
-                                        _removeExercise(exercise.id),
-                                  ),
+                                IconButton(
+                                  tooltip: 'Remove exercise',
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () =>
+                                      _removeExercise(exercise.id),
+                                ),
                               ],
                             ),
                           );
@@ -172,9 +172,7 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
     setState(() {
       _selectedExercises.removeWhere((exercise) => exercise.id == exerciseId);
     });
-    if (_hasExercises) {
-      _persistTemplate();
-    }
+    _persistTemplate();
   }
 
   Future<void> _changeExercise(int index) async {
@@ -186,7 +184,16 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
         .map((entry) => entry.value.id)
         .toSet();
 
-    final catalog = await _getExerciseCatalog();
+    List<Exercise> catalog;
+    try {
+      catalog = await _getExerciseCatalog();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'SessionOverviewScreen: failed to load exercise catalog. $error\n$stackTrace',
+      );
+      _showCatalogLoadError();
+      return;
+    }
     final options = catalog.where((exercise) {
       final isCurrent = exercise.id == current.id;
       if (!isCurrent && existingIds.contains(exercise.id)) return false;
@@ -215,7 +222,16 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
   }
 
   Future<void> _showAddExerciseSheet() async {
-    final catalog = await _getExerciseCatalog();
+    List<Exercise> catalog;
+    try {
+      catalog = await _getExerciseCatalog();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'SessionOverviewScreen: failed to load exercise catalog. $error\n$stackTrace',
+      );
+      _showCatalogLoadError();
+      return;
+    }
     final selectedIds = _selectedExercises
         .map((exercise) => exercise.id)
         .toSet();
@@ -260,10 +276,12 @@ class _SessionOverviewScreenState extends ConsumerState<SessionOverviewScreen> {
   }
 
   void _persistTemplate() {
-    if (!_hasExercises) return;
-    final status = _template.status == SessionStatus.draft
-        ? SessionStatus.active
-        : _template.status;
+    final hasExercises = _selectedExercises.isNotEmpty;
+    final status = hasExercises
+        ? (_template.status == SessionStatus.draft
+            ? SessionStatus.active
+            : _template.status)
+        : SessionStatus.draft;
     _template = _template.copyWith(
       name: _sessionName,
       status: status,

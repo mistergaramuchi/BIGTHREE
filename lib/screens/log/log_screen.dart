@@ -1,9 +1,8 @@
-import 'dart:convert';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/session/exercise_catalog_loader.dart';
 import '../../domain/session/models.dart';
 import '../../domain/session/session_draft_notifier.dart';
 import '../../ui/responsive/layout_constants.dart';
@@ -23,7 +22,6 @@ class LogScreen extends ConsumerStatefulWidget {
 
 class _LogScreenState extends ConsumerState<LogScreen> {
   int? _expandedExerciseIndex;
-  List<Exercise>? _catalogCache;
 
   @override
   void initState() {
@@ -57,7 +55,18 @@ class _LogScreenState extends ConsumerState<LogScreen> {
       for (final exercise in draft.exercises) exercise.exercise.id,
     }..remove(entry.exercise.id);
 
-    final catalog = await _loadCatalog();
+    List<Exercise> catalog;
+    try {
+      catalog = await _loadCatalog();
+    } catch (error, stackTrace) {
+      debugPrint(
+        'LogScreen: failed to load exercise catalog. $error\n$stackTrace',
+      );
+      _showSnackBar(
+        'Unable to load exercise catalog. Confirm assets/data/exercises.json is bundled.',
+      );
+      return;
+    }
     final options = catalog.where((candidate) {
       final isCurrent = candidate.id == entry.exercise.id;
       if (!isCurrent && existingIds.contains(candidate.id)) return false;
@@ -166,14 +175,7 @@ class _LogScreenState extends ConsumerState<LogScreen> {
   }
 
   Future<List<Exercise>> _loadCatalog() async {
-    if (_catalogCache != null) return _catalogCache!;
-    final raw = await rootBundle.loadString('assets/data/exercises.json');
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    _catalogCache = decoded
-        .map((item) => Exercise.fromJson(item as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
-    return _catalogCache!;
+    return ExerciseCatalogLoader.instance.load();
   }
 
   Future<Exercise?> _showExercisePicker({
